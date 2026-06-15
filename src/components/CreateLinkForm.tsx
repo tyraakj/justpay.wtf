@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, Wallet } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ConnectWallet } from './ConnectWallet';
 
 export function CreateLinkForm() {
   const [address, setAddress] = useState('');
@@ -54,10 +55,7 @@ export function CreateLinkForm() {
 
   return (
     <div className="flex flex-col gap-4">
-      <button className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-3 px-4 rounded-xl transition-all">
-        <Wallet className="w-5 h-5 text-gray-400" />
-        Connect Wallet
-      </button>
+      <ConnectWallet chain={chain} />
 
       <div className="relative flex items-center py-2">
         <div className="flex-grow border-t border-white/10"></div>
