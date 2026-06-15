@@ -1,17 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, useSendTransaction } from 'wagmi'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import { executeEVMTransfer } from '@/lib/web3/executeEVM'
 import { executeSolanaTransfer } from '@/lib/web3/executeSolana'
+import { getSwapQuote, constructSwapCalldata } from '@/lib/web3/swap'
 import { Loader2 } from 'lucide-react'
+import { VersionedTransaction } from '@solana/web3.js'
 
 interface SmartButtonProps {
   linkId: string
   chain: 'ethereum' | 'solana'
   recipientAddress: string
   tokenAddress: string | null
+  inputTokenAddress: string | null
   amount: string
   decimals?: number
   onSuccess: (txHash: string) => void
@@ -22,25 +25,73 @@ export function SmartButton({
   chain, 
   recipientAddress, 
   tokenAddress, 
+  inputTokenAddress,
   amount, 
   decimals = 18,
   onSuccess 
 }: SmartButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [swapPhase, setSwapPhase] = useState<'IDLE' | 'SWAP_COMPLETE'>('IDLE')
   
-  // Wagmi
   const { address: evmAddress } = useAccount()
   const { sendTransactionAsync } = useSendTransaction()
-  
-  // Solana
   const wallet = useWallet()
   const { connection } = useConnection()
+
+  const payerAddress = chain === 'ethereum' ? evmAddress : wallet.publicKey?.toBase58()
+
+  // 2-Phase Recovery Mechanism
+  useEffect(() => {
+    if (payerAddress) {
+      const state = sessionStorage.getItem(`envoy_swap:${linkId}:${payerAddress}`)
+      if (state === 'SWAP_COMPLETE') {
+        setSwapPhase('SWAP_COMPLETE')
+      }
+    }
+  }, [linkId, payerAddress])
 
   const handleExecute = async () => {
     setIsLoading(true)
     try {
       let txHash: string
+      let wasSwapped = false
 
+      const isSwapRequired = inputTokenAddress && inputTokenAddress !== tokenAddress
+
+      if (isSwapRequired && swapPhase === 'IDLE') {
+        // Phase 1: Execute Swap
+        wasSwapped = true
+        const quote = await getSwapQuote({
+          chain,
+          inputToken: inputTokenAddress,
+          outputToken: tokenAddress || 'NATIVE',
+          exactOutputAmount: amount,
+          decimals
+        })
+
+        const calldata = await constructSwapCalldata(chain, quote, payerAddress!)
+
+        if (chain === 'solana') {
+          const swapTransactionBuf = Buffer.from(calldata, 'base64')
+          var transaction = VersionedTransaction.deserialize(swapTransactionBuf)
+          txHash = await wallet.sendTransaction(transaction, connection)
+        } else {
+          txHash = await sendTransactionAsync({
+            to: calldata.to as `0x${string}`,
+            data: calldata.data as `0x${string}`,
+            value: BigInt(calldata.value || 0),
+          })
+        }
+
+        // Save state to sessionStorage
+        sessionStorage.setItem(`envoy_swap:${linkId}:${payerAddress}`, 'SWAP_COMPLETE')
+        setSwapPhase('SWAP_COMPLETE')
+        
+        // Wait for swap to confirm (simplified for V1)
+        await new Promise(resolve => setTimeout(resolve, 5000))
+      }
+
+      // Phase 2: Direct Payment
       if (chain === 'ethereum') {
         if (!evmAddress) throw new Error('EVM Wallet not connected')
         txHash = await executeEVMTransfer({
@@ -62,11 +113,12 @@ export function SmartButton({
         })
       }
 
-      // Record the transaction intent to Supabase edge function
-      const payerAddress = chain === 'ethereum' ? evmAddress : wallet.publicKey?.toBase58()
+      // Clear session storage on success
+      sessionStorage.removeItem(`envoy_swap:${linkId}:${payerAddress}`)
+
+      // Record the transaction intent
       const idempotencyKey = crypto.randomUUID()
-      
-      const res = await fetch('https://[YOUR_SUPABASE_PROJECT_ID].supabase.co/functions/v1/record-transaction', {
+      await fetch('https://[YOUR_SUPABASE_PROJECT_ID].supabase.co/functions/v1/record-transaction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,13 +128,10 @@ export function SmartButton({
           payerChain: chain,
           txHash,
           amountPaid: parseFloat(amount),
-          tokenPaid: tokenAddress ? 'ERC20/SPL' : 'NATIVE'
+          tokenPaid: inputTokenAddress || tokenAddress || 'NATIVE',
+          wasSwapped
         })
       })
-
-      if (!res.ok) {
-        console.warn('Transaction sent but intent log failed:', await res.text())
-      }
 
       onSuccess(txHash)
       
@@ -94,7 +143,7 @@ export function SmartButton({
     }
   }
 
-  const isReady = chain === 'ethereum' ? !!evmAddress : !!wallet.publicKey
+  const isReady = !!payerAddress
 
   return (
     <button
@@ -105,10 +154,10 @@ export function SmartButton({
       {isLoading ? (
         <>
           <Loader2 className="w-5 h-5 animate-spin" />
-          Confirming in Wallet...
+          {swapPhase === 'IDLE' ? 'Swapping & Paying...' : 'Confirming Payment...'}
         </>
       ) : (
-        `Pay ${amount}`
+        swapPhase === 'SWAP_COMPLETE' ? `Complete Payment` : `Pay ${amount}`
       )}
     </button>
   )
