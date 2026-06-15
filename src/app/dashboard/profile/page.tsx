@@ -1,6 +1,16 @@
+'use client';
+
 import { Save, Wallet } from 'lucide-react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useAccount } from 'wagmi';
 
 export default function DashboardProfile() {
+  const { publicKey } = useWallet();
+  const { address: evmAddress } = useAccount();
+  
+  const solAddressStr = publicKey ? publicKey.toBase58() : '';
+  const evmAddressStr = evmAddress || '';
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
@@ -23,8 +33,10 @@ export default function DashboardProfile() {
               <label className="form-label">Solana Address</label>
               <input 
                 type="text" 
-                defaultValue="HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH" 
+                value={solAddressStr} 
+                placeholder="Connect Solana wallet to view"
                 className="input-field font-mono"
+                readOnly
               />
             </div>
             
@@ -32,8 +44,10 @@ export default function DashboardProfile() {
               <label className="form-label">EVM Address (Ethereum/Arbitrum/Polygon)</label>
               <input 
                 type="text" 
-                defaultValue="0x71C7656EC7ab88b098defB751B7401B5f6d8976F" 
+                value={evmAddressStr} 
+                placeholder="Connect EVM wallet to view"
                 className="input-field font-mono"
+                readOnly
               />
             </div>
 
