@@ -1,4 +1,4 @@
-import { ArrowRight, Link as LinkIcon, Wallet } from "lucide-react";
+// import { ArrowRight, Link as LinkIcon, Wallet } from "lucide-react";
 import { CreateLinkForm } from "@/components/CreateLinkForm";
 
 export default function Home() {

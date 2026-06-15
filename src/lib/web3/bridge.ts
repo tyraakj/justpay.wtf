@@ -39,6 +39,7 @@ export async function getBridgeQuote({
   return res.json()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function buildBridgeTx(
   quoteResponse: any,
   payerAddress: string,

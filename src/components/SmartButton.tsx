@@ -48,6 +48,7 @@ export function SmartButton({
     if (payerAddress) {
       const state = sessionStorage.getItem(`envoy_swap:${linkId}:${payerAddress}`)
       if (state === 'SWAP_COMPLETE') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSwapPhase('SWAP_COMPLETE')
       }
     }
@@ -57,7 +58,7 @@ export function SmartButton({
     setIsLoading(true)
     try {
       let txHash: string
-      let isBridge = payerChain !== chain
+      const isBridge = payerChain !== chain
       let wasSwapped = false
 
       if (isBridge) {
@@ -78,7 +79,7 @@ export function SmartButton({
 
         if (payerChain === 'solana') {
           const swapTransactionBuf = Buffer.from(bridgeTx.tx.data, 'hex')
-          var transaction = VersionedTransaction.deserialize(swapTransactionBuf)
+          const transaction = VersionedTransaction.deserialize(swapTransactionBuf)
           txHash = await wallet.sendTransaction(transaction, connection)
         } else {
           txHash = await sendTransactionAsync({
@@ -107,7 +108,7 @@ export function SmartButton({
 
           if (chain === 'solana') {
             const swapTransactionBuf = Buffer.from(calldata, 'base64')
-            var transaction = VersionedTransaction.deserialize(swapTransactionBuf)
+            const transaction = VersionedTransaction.deserialize(swapTransactionBuf)
             txHash = await wallet.sendTransaction(transaction, connection)
           } else {
             txHash = await sendTransactionAsync({

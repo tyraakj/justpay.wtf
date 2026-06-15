@@ -20,7 +20,7 @@ export async function getSwapQuote({
   if (chain === 'solana') {
     // Jupiter V2 API using exactOut
     // Add +0.1% to target amount to ensure absolute delivery after fees
-    const adjustedAmount = (BigInt(amountBase) * 1001n) / 1000n
+    const adjustedAmount = (BigInt(amountBase) * BigInt(1001)) / BigInt(1000)
 
     const url = `https://quote-api.jup.ag/v6/quote?inputMint=${inputToken}&outputMint=${outputToken}&amount=${adjustedAmount.toString()}&slippageBps=${slippageBps}&swapMode=ExactOut`
     
@@ -50,6 +50,7 @@ export async function getSwapQuote({
 
 export async function constructSwapCalldata(
   chain: 'ethereum' | 'solana',
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   quoteResponse: any,
   payerAddress: string
 ) {

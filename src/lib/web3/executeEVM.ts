@@ -16,6 +16,7 @@ const erc20Abi = [
 ] as const
 
 interface ExecuteEVMParams {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   sendTransactionAsync: SendTransactionMutateAsync<any, any>
   tokenAddress: string | null
   recipientAddress: `0x${string}`

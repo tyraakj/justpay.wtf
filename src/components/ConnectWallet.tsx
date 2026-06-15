@@ -24,6 +24,7 @@ export function ConnectWallet({ chain }: ConnectWalletProps) {
   const { setVisible } = useWalletModal()
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
