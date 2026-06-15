@@ -32,7 +32,6 @@ export function NavbarConnectButton() {
   useEffect(() => {
     if (connected && pathname === '/') {
       router.push('/dashboard');
-      setIsOpen(false);
     }
   }, [connected, pathname, router]);
 
@@ -87,6 +86,7 @@ export function NavbarConnectButton() {
               
               <button 
                 onClick={() => {
+                  setIsOpen(false);
                   evmConnect({ connector: injected() });
                 }}
                 className="flex items-center justify-between p-4 rounded-xl bg-[#0A0A0A] border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all group"

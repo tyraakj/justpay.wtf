@@ -3,15 +3,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #000000; /* Pure Black */
-  --foreground: #FFFFFF; /* Pure White */
+  --background: #09090B; /* Deep Zinc / Near Black */
+  --foreground: #FAFAFA; /* Zinc 50 */
   
-  --primary: #3B82F6; /* Electric Blue */
-  --primary-hover: #2563EB; /* Deep Blue */
+  --primary: #2563EB; /* Clean SaaS Blue */
+  --primary-hover: #1D4ED8; /* Darker Blue */
   
-  --secondary: #EC4899; /* Vibrant Pink */
+  --secondary: #8B5CF6; /* Vibrant Purple */
   
-  --surface: #0A0A0A; /* Slightly lighter for cards */
+  --surface: #18181B; /* Zinc 900 for cards */
   --surface-hover: #121212;
   --border: rgba(255, 255, 255, 0.05);
   --border-hover: rgba(255, 255, 255, 0.1);
@@ -37,7 +37,7 @@
   --color-error: var(--error);
   --color-warning: var(--warning);
   
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {

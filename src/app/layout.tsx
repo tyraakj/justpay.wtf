@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { Navbar } from "@/components/Navbar";
 import { NeonBackground } from "@/components/NeonBackground";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${jakarta.variable} h-full antialiased dark`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col relative">
         <Web3Provider>
           <NeonBackground />
