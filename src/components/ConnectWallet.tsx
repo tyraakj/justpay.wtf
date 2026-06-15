@@ -61,7 +61,7 @@ export function ConnectWallet({ chain }: ConnectWalletProps) {
     return (
       <button 
         onClick={handleDisconnect}
-        className="w-full flex items-center justify-center gap-3 bg-success/10 hover:bg-error/10 border border-success/30 hover:border-error/30 text-success hover:text-error font-medium py-3 px-4 rounded-xl transition-all group"
+        className="btn-connect-active"
       >
         <Wallet className="w-5 h-5 group-hover:hidden" />
         <span className="group-hover:hidden">{shortAddress}</span>
@@ -73,7 +73,7 @@ export function ConnectWallet({ chain }: ConnectWalletProps) {
   return (
     <button 
       onClick={handleConnect}
-      className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-3 px-4 rounded-xl transition-all"
+      className="btn-connect"
     >
       <Wallet className="w-5 h-5 text-gray-400" />
       Connect {chain === 'ethereum' ? 'EVM' : 'Solana'} Wallet

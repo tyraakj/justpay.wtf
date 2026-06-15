@@ -47,8 +47,8 @@ export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, a
           Your transaction is confirming. The merchant will be notified automatically.
         </p>
         {txHash && (
-          <div className="mt-4 p-3 bg-black/20 rounded-xl border border-white/5 w-full">
-            <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Transaction Hash</p>
+          <div className="mt-4 status-box w-full">
+            <p className="form-label text-gray-500 mb-1">Transaction Hash</p>
             <p className="text-sm font-mono text-white truncate">{txHash}</p>
           </div>
         )}
@@ -63,13 +63,13 @@ export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, a
         <div className="flex gap-2">
           <button 
             onClick={() => setPayerChain('ethereum')}
-            className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${payerChain === 'ethereum' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/40'}`}
+            className={payerChain === 'ethereum' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
           >
             EVM (Base/Eth)
           </button>
           <button 
             onClick={() => setPayerChain('solana')}
-            className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${payerChain === 'solana' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/40'}`}
+            className={payerChain === 'solana' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
           >
             Solana
           </button>

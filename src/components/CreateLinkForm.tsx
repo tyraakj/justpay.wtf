@@ -58,54 +58,54 @@ export function CreateLinkForm() {
       <ConnectWallet chain={chain} />
 
       <div className="relative flex items-center py-2">
-        <div className="flex-grow border-t border-white/10"></div>
-        <span className="flex-shrink-0 mx-4 text-xs text-gray-500 uppercase tracking-wider font-semibold">Or Address</span>
-        <div className="flex-grow border-t border-white/10"></div>
+        <div className="divider-line"></div>
+        <span className="flex-shrink-0 mx-4 form-label text-gray-500">Or Address</span>
+        <div className="divider-line"></div>
       </div>
 
       <div className="flex gap-2">
         <button 
           onClick={() => setChain('ethereum')}
-          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${chain === 'ethereum' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/40'}`}
+          className={chain === 'ethereum' ? 'btn-secondary-active' : 'btn-secondary'}
         >
           Ethereum
         </button>
         <button 
           onClick={() => setChain('solana')}
-          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${chain === 'solana' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/40'}`}
+          className={chain === 'solana' ? 'btn-secondary-active' : 'btn-secondary'}
         >
           Solana
         </button>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Destination</label>
+        <label className="form-label">Destination</label>
         <input 
           type="text" 
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder={chain === 'ethereum' ? "0x..." : "Solana address"} 
-          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+          className="input-field"
         />
       </div>
 
       <div className="flex gap-4">
         <div className="flex flex-col gap-2 flex-1">
-          <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</label>
+          <label className="form-label">Amount</label>
           <input 
             type="number" 
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00" 
-            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            className="input-field"
           />
         </div>
         <div className="flex flex-col gap-2 w-32">
-          <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Token</label>
+          <label className="form-label">Token</label>
           <select 
             value={tokenSymbol}
             onChange={(e) => setTokenSymbol(e.target.value)}
-            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
+            className="select-field"
           >
             <option value="USDC">USDC</option>
             <option value="USDT">USDT</option>
@@ -117,7 +117,7 @@ export function CreateLinkForm() {
       <button 
         onClick={handleCreate}
         disabled={isLoading || !address || !amount}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-all mt-2 shadow-lg shadow-primary/25"
+        className="btn-primary mt-2"
       >
         {isLoading ? 'Creating...' : 'Create Link'}
         {!isLoading && <ArrowRight className="w-4 h-4" />}

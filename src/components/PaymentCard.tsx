@@ -27,19 +27,19 @@ export function PaymentCard({ amount, tokenSymbol, fiatValue, recipientAddress, 
       </div>
 
       <div className="relative z-10 flex flex-col gap-4 mt-2">
-        <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
+        <div className="flex items-center justify-between status-box">
           <span className="text-sm text-gray-400">To</span>
           <div className="flex items-center gap-2">
             <span className="text-sm font-mono text-white">{shortAddress}</span>
-            <button className="text-gray-500 hover:text-white transition-colors">
+            <button className="btn-icon">
               <Copy className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {memo && (
-          <div className="flex flex-col p-3 rounded-xl bg-black/20 border border-white/5 gap-1">
-            <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Memo</span>
+          <div className="flex flex-col gap-1 status-box">
+            <span className="form-label text-gray-500">Memo</span>
             <span className="text-sm text-gray-300">{memo}</span>
           </div>
         )}

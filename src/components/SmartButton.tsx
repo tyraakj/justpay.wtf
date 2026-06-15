@@ -183,7 +183,7 @@ export function SmartButton({
     <button
       onClick={handleExecute}
       disabled={isLoading || !isReady}
-      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all shadow-lg shadow-primary/25"
+      className="btn-primary-lg"
     >
       {isLoading ? (
         <>

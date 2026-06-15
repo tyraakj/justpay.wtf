@@ -13,7 +13,7 @@ export default function Home() {
         
         {/* Hero Section */}
         <div className="flex flex-col gap-6 text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary w-fit text-sm font-medium">
+          <div className="badge">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -23,7 +23,7 @@ export default function Home() {
           
           <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-white leading-[1.1]">
             Frictionless Crypto <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            <span className="heading-gradient">
               Payment Links
             </span>
           </h1>
