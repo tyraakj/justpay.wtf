@@ -14,26 +14,6 @@ export default function DocsPage() {
               justpay.wtf is a non-custodial payment routing protocol. We do not hold user funds. When a payment is initiated via a link, we use ExactOut routing to determine the required input token amount to satisfy the requested output token amount and settlement chain.
             </p>
           </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-white mb-4">Generating Links via API</h2>
-            <div className="bg-[#0A0A0A] border border-white/5 p-6 rounded-2xl">
-              <pre className="text-sm text-gray-300 font-mono overflow-x-auto">
-                <code>
-{`POST /api/links
-Content-Type: application/json
-Authorization: Bearer YOUR_API_KEY
-
-{
-  "destinationChain": "solana",
-  "destinationAddress": "HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH",
-  "token": "USDC",
-  "amount": "100.00"
-}`}
-                </code>
-              </pre>
-            </div>
-          </section>
         </div>
       </div>
     </main>

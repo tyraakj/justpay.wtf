@@ -1,32 +1,21 @@
 import Link from 'next/link';
+import { NavbarConnectButton } from './NavbarConnectButton';
 
 export function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-      <div className="max-w-6xl mx-auto glass rounded-2xl px-6 py-3 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center">
-            <span className="text-white font-bold text-lg">j</span>
+      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
-          <span className="text-white font-bold text-xl tracking-tight">justpay.wtf</span>
-        </Link>
-        
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-          <Link href="/how-it-works" className="text-gray-400 hover:text-white transition-colors">
-            How it works
-          </Link>
-          <Link href="/docs" className="text-gray-400 hover:text-white transition-colors">
-            Docs
-          </Link>
+          <span className="font-extrabold text-xl tracking-tight text-white">justpay<span className="text-primary">.wtf</span></span>
         </div>
 
         <div className="flex items-center gap-4">
-          <Link 
-            href="/dashboard" 
-            className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/5"
-          >
-            Launch App
-          </Link>
+          <NavbarConnectButton />
         </div>
       </div>
     </nav>

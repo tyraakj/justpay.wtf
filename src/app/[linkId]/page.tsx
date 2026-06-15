@@ -3,11 +3,12 @@ import { PaymentCard } from '@/components/PaymentCard'
 import { CheckoutClient } from './CheckoutClient'
 import { notFound } from 'next/navigation'
 
-export default async function PaymentPage({ params }: { params: { linkId: string } }) {
+export default async function PaymentPage({ params }: { params: Promise<{ linkId: string }> }) {
+  const resolvedParams = await params;
   const { data: link } = await supabase
     .from('payment_links')
     .select('*')
-    .eq('short_code', params.linkId)
+    .eq('short_code', resolvedParams.linkId)
     .single()
 
   if (!link) {

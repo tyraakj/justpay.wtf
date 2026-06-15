@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { Navbar } from "@/components/Navbar";
+import { NeonBackground } from "@/components/NeonBackground";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -22,10 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${jakarta.variable} h-full antialiased dark`}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col relative">
         <Web3Provider>
+          <NeonBackground />
           <Navbar />
-          {children}
+          <div className="relative z-10 flex flex-col flex-1">
+            {children}
+          </div>
         </Web3Provider>
       </body>
     </html>
