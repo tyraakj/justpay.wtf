@@ -1,55 +1,44 @@
-// import { ArrowRight, Link as LinkIcon, Wallet } from "lucide-react";
+import { NeonBackground } from "@/components/NeonBackground";
 import { CreateLinkForm } from "@/components/CreateLinkForm";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6 sm:p-12 md:p-24 relative overflow-hidden">
+    <main className="min-h-screen flex flex-col items-center pt-24 pb-12 px-6 relative overflow-hidden">
       
-      {/* Decorative background elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/20 blur-[120px] pointer-events-none" />
+      {/* Dynamic Neon Background */}
+      <NeonBackground />
 
-      <div className="w-full max-w-5xl z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        
-        {/* Hero Section */}
-        <div className="flex flex-col gap-6 text-left">
-          <div className="badge">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            justpay.wtf V1 is Live
-          </div>
-          
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-white leading-[1.1]">
-            Frictionless Crypto <br/>
-            <span className="heading-gradient">
-              Payment Links
-            </span>
-          </h1>
-          
-          <p className="text-lg text-gray-400 max-w-lg leading-relaxed">
-            Generate non-custodial payment links in seconds. Instant settlement to your Solana or Ethereum wallet. Zero fees, zero smart-contract risk.
-          </p>
-
-          <div className="flex items-center gap-6 mt-4 text-sm text-gray-500 font-medium">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-success" /> ExactOut Routing
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-success" /> State-Free Execution
-            </div>
-          </div>
+      {/* Centered Hero Section */}
+      <div className="flex flex-col items-center text-center gap-6 z-10 max-w-4xl mb-12">
+        <div className="badge">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+          </span>
+          justpay.wtf V1 is Live
         </div>
+        
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+          Supercharge your crypto <br/>
+          <span className="text-[#93C5FD]">payments & settlement</span>
+        </h1>
+        
+        <p className="text-lg md:text-xl text-gray-400 max-w-2xl leading-relaxed font-medium">
+          Generate non-custodial payment links in seconds. Instant settlement to your Solana or Ethereum wallet. Zero fees, zero smart-contract risk.
+        </p>
+      </div>
 
-        {/* Create Link Form Shell */}
-        <div className="glass-card p-6 sm:p-8 w-full max-w-md mx-auto relative group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
+      {/* Main App Container */}
+      <div className="relative w-full max-w-6xl flex justify-center items-center mt-12 min-h-[600px]">
+
+        {/* Floating Create Link Card (like the phone in Copilot) */}
+        <div className="glass-card p-6 sm:p-8 w-full max-w-md relative z-10 group shadow-[0_20px_60px_rgba(0,0,0,0.8)] border-white/10 mt-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2rem] pointer-events-none" />
           
           <div className="relative z-10 flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-xl font-semibold text-white">Create Payment Link</h2>
-              <p className="text-sm text-gray-400">Step 1: Connect your destination wallet</p>
+            <div className="flex flex-col gap-2 items-center text-center">
+              <h2 className="text-2xl font-bold text-white">Create Payment Link</h2>
+              <p className="text-sm text-gray-400 font-medium">Step 1: Connect your destination wallet</p>
             </div>
 
             <CreateLinkForm />
