@@ -1,4 +1,4 @@
-# Envoy
+# justpay.wtf
 
 A zero-custody, zero-contract payment link execution layer. Bypassing smart-contract risk by delegating state transition verifications entirely to asynchronous indexing (Alchemy/Helius Webhooks) and executing pure native/ERC-20/SPL transfers via the client.
 
@@ -13,7 +13,7 @@ A zero-custody, zero-contract payment link execution layer. Bypassing smart-cont
 ### 1. Clone & Install
 ```bash
 git clone <repository_url>
-cd Envoy
+cd justpay.wtf
 npm install
 ```
 
@@ -25,7 +25,7 @@ cp .env.example .env.local
 Fill out your `.env.local` with your Next.js frontend keys (Supabase URL/Anon key, Alchemy RPC, Helius RPC, 0x API key).
 
 ### 3. Supabase Deployment
-Envoy relies on Supabase for the database, idempotency schema, and Edge Functions (API & webhooks).
+justpay.wtf relies on Supabase for the database, idempotency schema, and Edge Functions (API & webhooks).
 
 1. Initialize your local Supabase CLI or link to your hosted project:
    ```bash

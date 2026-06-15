@@ -26,7 +26,7 @@ export function CreateLinkForm() {
           creatorChain: chain,
           tokenSymbol,
           amount,
-          label: 'Envoy Payment',
+          label: 'justpay.wtf Payment',
         })
       });
 
@@ -37,11 +37,11 @@ export function CreateLinkForm() {
       const data = await response.json();
       
       // Save to localStorage LRU
-      const existingStr = localStorage.getItem('envoy_links');
+      const existingStr = localStorage.getItem('justpay_links');
       let links = existingStr ? JSON.parse(existingStr) : [];
       links.unshift({ shortCode: data.short_code, createdAt: new Date().toISOString() });
       if (links.length > 5) links = links.slice(0, 5);
-      localStorage.setItem('envoy_links', JSON.stringify(links));
+      localStorage.setItem('justpay_links', JSON.stringify(links));
 
       // Redirect to payment page
       router.push(`/${data.short_code}`);

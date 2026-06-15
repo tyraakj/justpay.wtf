@@ -46,7 +46,7 @@ export function SmartButton({
   // 2-Phase Recovery Mechanism
   useEffect(() => {
     if (payerAddress) {
-      const state = sessionStorage.getItem(`envoy_swap:${linkId}:${payerAddress}`)
+      const state = sessionStorage.getItem(`justpay_swap:${linkId}:${payerAddress}`)
       if (state === 'SWAP_COMPLETE') {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSwapPhase('SWAP_COMPLETE')
@@ -118,7 +118,7 @@ export function SmartButton({
             })
           }
 
-          sessionStorage.setItem(`envoy_swap:${linkId}:${payerAddress}`, 'SWAP_COMPLETE')
+          sessionStorage.setItem(`justpay_swap:${linkId}:${payerAddress}`, 'SWAP_COMPLETE')
           setSwapPhase('SWAP_COMPLETE')
           await new Promise(resolve => setTimeout(resolve, 5000))
         }
@@ -146,7 +146,7 @@ export function SmartButton({
         }
       }
 
-      sessionStorage.removeItem(`envoy_swap:${linkId}:${payerAddress}`)
+      sessionStorage.removeItem(`justpay_swap:${linkId}:${payerAddress}`)
 
       // Record the transaction intent
       const idempotencyKey = crypto.randomUUID()

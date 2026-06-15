@@ -67,7 +67,7 @@ serve(async (req) => {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              from: 'Envoy <notifications@envoy.finance>',
+              from: 'justpay.wtf <notifications@justpay.wtf>',
               to: [merchantEmail],
               subject: 'Payment Received!',
               html: `<p>Your payment link has been successfully fulfilled via Solana.</p><p>Transaction: ${txHash}</p>`

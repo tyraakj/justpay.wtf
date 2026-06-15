@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Envoy — Frictionless Crypto Payments",
+  title: "justpay.wtf — Frictionless Crypto Payments",
   description: "A zero-auth payment link generator with integrated swap/bridge for Solana & Ethereum.",
 };
 

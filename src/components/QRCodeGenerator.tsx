@@ -16,7 +16,7 @@ export function QRCodeGenerator({ url }: QRCodeGeneratorProps) {
     const downloadUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = 'envoy-payment.svg';
+    a.download = 'justpay-payment.svg';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -18,7 +18,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            Envoy V1 is Live
+            justpay.wtf V1 is Live
           </div>
           
           <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-white leading-[1.1]">
