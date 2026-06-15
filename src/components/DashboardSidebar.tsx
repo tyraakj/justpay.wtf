@@ -1,15 +1,33 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useAccount, useDisconnect } from 'wagmi';
+import { LogOut } from 'lucide-react';
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const { publicKey, connected: solConnected, disconnect: solDisconnect } = useWallet();
+  const { address: evmAddress, isConnected: evmConnected } = useAccount();
+  const { disconnect: evmDisconnect } = useDisconnect();
+
+  const connected = solConnected || evmConnected;
+  const address = solConnected ? publicKey?.toBase58() : evmAddress;
+  const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not Connected';
+
+  const handleDisconnect = () => {
+    if (solConnected) solDisconnect();
+    if (evmConnected) evmDisconnect();
+    router.push('/');
+  };
 
   const navLinks = [
     { name: 'Overview', href: '/dashboard' },
-    { name: 'Transaction History', href: '/dashboard/history' },
-    { name: 'Profile Settings', href: '/dashboard/profile' },
+    { name: 'History', href: '/dashboard/history' },
+    { name: 'Profile', href: '/dashboard/profile' }
   ];
 
   return (
@@ -35,9 +53,19 @@ export function DashboardSidebar() {
       </div>
 
       <div className="mt-auto">
-        <div className="status-box flex flex-col gap-2">
-          <p className="text-xs text-gray-400">Connected Wallet</p>
-          <p className="text-sm font-mono text-white truncate">0x71C...976F</p>
+        <div className="status-box flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-gray-400">Connected Wallet</p>
+            <p className="text-sm font-mono text-white truncate">{shortAddress}</p>
+          </div>
+          {connected && (
+            <button 
+              onClick={handleDisconnect}
+              className="flex items-center gap-2 text-xs font-bold text-error hover:text-error/80 transition-colors pt-2 border-t border-white/5"
+            >
+              <LogOut className="w-3 h-3" /> Disconnect
+            </button>
+          )}
         </div>
       </div>
     </aside>

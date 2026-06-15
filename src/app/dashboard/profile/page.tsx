@@ -1,4 +1,4 @@
-import { Key, Save, Wallet } from 'lucide-react';
+import { Save, Wallet } from 'lucide-react';
 
 export default function DashboardProfile() {
   return (
@@ -43,42 +43,6 @@ export default function DashboardProfile() {
           </div>
         </div>
 
-        {/* API Keys Settings */}
-        <div className="glass-card p-6 flex flex-col gap-6">
-          <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-            <div className="p-2 bg-secondary/20 rounded-lg text-secondary">
-              <Key className="w-5 h-5" />
-            </div>
-            <h2 className="text-xl font-bold text-white">API Keys</h2>
-          </div>
-          
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-gray-400">
-              Use your API key to programmatically generate payment links from your backend. Keep this secret.
-            </p>
-
-            <div className="flex flex-col gap-2">
-              <label className="form-label">Live Secret Key</label>
-              <div className="flex gap-2">
-                <input 
-                  type="password" 
-                  defaultValue="sk_live_1234567890abcdef" 
-                  className="input-field font-mono"
-                  readOnly
-                />
-                <button className="btn-secondary w-auto px-6 whitespace-nowrap">
-                  Reveal
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-white/5">
-              <button className="btn-secondary text-error hover:text-error hover:bg-error/10 border-transparent">
-                Revoke API Key
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
