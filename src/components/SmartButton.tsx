@@ -150,7 +150,7 @@ export function SmartButton({
 
       // Record the transaction intent
       const idempotencyKey = crypto.randomUUID()
-      await fetch('https://[YOUR_SUPABASE_PROJECT_ID].supabase.co/functions/v1/record-transaction', {
+      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/record-transaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

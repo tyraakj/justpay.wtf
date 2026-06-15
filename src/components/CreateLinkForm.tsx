@@ -18,7 +18,7 @@ export function CreateLinkForm() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('https://[YOUR_SUPABASE_PROJECT_ID].supabase.co/functions/v1/create-link', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-link`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

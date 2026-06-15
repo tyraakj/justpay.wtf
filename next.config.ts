@@ -8,8 +8,10 @@ const cspHeader = `
   font-src 'self' https://fonts.gstatic.com;
   connect-src 'self'
     https://*.supabase.co
+    https://quote-api.jup.ag
     https://api.jup.ag
     https://api.0x.org
+    https://dln.debridge.finance
     https://li.quest
     https://api.resend.com
     wss://*.walletconnect.com
