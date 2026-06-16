@@ -21,7 +21,11 @@ export function CreateLinkForm() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-link`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        },
         body: JSON.stringify({
           creatorAddress: address,
           creatorChain: chain,
@@ -61,7 +65,7 @@ export function CreateLinkForm() {
 
       <div className="relative flex items-center py-2">
         <div className="divider-line"></div>
-        <span className="flex-shrink-0 mx-4 form-label text-gray-500">Or Address</span>
+        <span className="flex-shrink-0 mx-4 form-label text-zinc-500">Or Address</span>
         <div className="divider-line"></div>
       </div>
 
