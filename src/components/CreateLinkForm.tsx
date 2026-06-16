@@ -1,46 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ConnectWallet } from './ConnectWallet';
+import { useAccount } from 'wagmi';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletConnectButton } from './shared/WalletConnectButton';
+import { createPaymentLink } from '../lib/payment';
+import { ZeroFeeBanner } from './shared/ZeroFeeBanner';
+import { ChainTokenSelector, SupportedChain } from './shared/ChainTokenSelector';
 
 export function CreateLinkForm() {
   const [address, setAddress] = useState('');
-  const [chain, setChain] = useState<'ethereum' | 'solana'>('ethereum');
+  const [chain, setChain] = useState<'base' | 'solana'>('base');
   const [amount, setAmount] = useState('');
   const [tokenSymbol, setTokenSymbol] = useState('USDC');
   const [email, setEmail] = useState('');
+  const [memo, setMemo] = useState('');
+  const [expiry, setExpiry] = useState('15m');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const { address: evmAddress } = useAccount();
+  const { publicKey } = useWallet();
+  const connectedAddress = evmAddress || publicKey?.toBase58();
+
+  useEffect(() => {
+    if (connectedAddress) {
+      const savedExpiry = localStorage.getItem(`justpay_expiry_${connectedAddress}`);
+      if (savedExpiry) {
+        setExpiry(savedExpiry);
+      }
+    }
+  }, [connectedAddress]);
 
   const handleCreate = async () => {
     if (!address || !amount) return;
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-link`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-        },
-        body: JSON.stringify({
-          creatorAddress: address,
-          creatorChain: chain,
-          tokenSymbol,
-          amount,
-          creatorEmail: email || undefined,
-          label: 'justpay.wtf Payment',
-        })
+      let expiresAt: string | undefined;
+      const now = new Date();
+      if (expiry === '15m') expiresAt = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
+      else if (expiry === '1h') expiresAt = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+      else if (expiry === '24h') expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      else if (expiry === '7d') expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      else if (expiry === 'none') expiresAt = undefined;
+
+      const data = await createPaymentLink({
+        creatorAddress: address,
+        creatorChain: chain === 'base' ? 'ethereum' : 'solana',
+        tokenSymbol,
+        amount,
+        creatorEmail: email || undefined,
+        memo: memo || undefined,
+        expiresAt,
+        label: 'justpay.wtf Payment',
       });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
-      const data = await response.json();
       
       // Save to localStorage LRU
       const existingStr = localStorage.getItem('justpay_links');
@@ -51,9 +67,9 @@ export function CreateLinkForm() {
 
       // Redirect to payment page
       router.push(`/${data.short_code}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Failed to create link');
+      alert(error.message || 'Failed to create link');
     } finally {
       setIsLoading(false);
     }
@@ -61,28 +77,21 @@ export function CreateLinkForm() {
 
   return (
     <div className="flex flex-col gap-4">
-      <ConnectWallet chain={chain} />
-
+      <WalletConnectButton variant="form" />
       <div className="relative flex items-center py-2">
         <div className="divider-line"></div>
         <span className="flex-shrink-0 mx-4 form-label text-zinc-500">Or Address</span>
         <div className="divider-line"></div>
       </div>
 
-      <div className="flex gap-2">
-        <button 
-          onClick={() => setChain('ethereum')}
-          className={chain === 'ethereum' ? 'btn-secondary-active' : 'btn-secondary'}
-        >
-          Ethereum
-        </button>
-        <button 
-          onClick={() => setChain('solana')}
-          className={chain === 'solana' ? 'btn-secondary-active' : 'btn-secondary'}
-        >
-          Solana
-        </button>
-      </div>
+      <ZeroFeeBanner chain={chain} />
+
+      <ChainTokenSelector 
+        selectedChain={chain}
+        selectedToken={tokenSymbol}
+        onChainSelect={setChain as any}
+        onTokenSelect={setTokenSymbol}
+      />
 
       <div className="flex flex-col gap-2">
         <label className="form-label">Destination</label>
@@ -90,12 +99,12 @@ export function CreateLinkForm() {
           type="text" 
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder={chain === 'ethereum' ? "0x..." : "Solana address"} 
+          placeholder={chain === 'base' ? "0x..." : "Solana address"} 
           className="input-field"
         />
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2 flex-1">
           <label className="form-label">Amount</label>
           <input 
@@ -106,29 +115,44 @@ export function CreateLinkForm() {
             className="input-field"
           />
         </div>
-        <div className="flex flex-col gap-2 w-32">
-          <label className="form-label">Token</label>
-          <select 
-            value={tokenSymbol}
-            onChange={(e) => setTokenSymbol(e.target.value)}
-            className="select-field"
-          >
-            <option value="USDC">USDC</option>
-            <option value="USDT">USDT</option>
-            <option value={chain === 'ethereum' ? 'ETH' : 'SOL'}>{chain === 'ethereum' ? 'ETH' : 'SOL'}</option>
-          </select>
-        </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="form-label">Email (Optional)</label>
+        <label className="form-label">Memo (Optional)</label>
         <input 
-          type="email" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="For payment notifications" 
+          type="text" 
+          value={memo}
+          onChange={(e) => setMemo(e.target.value)}
+          placeholder="Invoice #123, Coffee, etc." 
           className="input-field"
         />
+      </div>
+
+      <div className="flex gap-4">
+        <div className="flex flex-col gap-2 flex-1">
+          <label className="form-label">Email (Optional)</label>
+          <input 
+            type="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="For payment notifications" 
+            className="input-field"
+          />
+        </div>
+        <div className="flex flex-col gap-2 w-32">
+          <label className="form-label">Expiry</label>
+          <select 
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
+            className="select-field"
+          >
+            <option value="15m">15 Mins</option>
+            <option value="1h">1 Hour</option>
+            <option value="24h">24 Hours</option>
+            <option value="7d">7 Days</option>
+            <option value="none">Never</option>
+          </select>
+        </div>
       </div>
 
       <button 

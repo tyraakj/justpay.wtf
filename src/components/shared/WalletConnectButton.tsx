@@ -8,7 +8,7 @@ import { Wallet, X, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-export function NavbarConnectButton() {
+export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar' | 'form' }) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   
@@ -29,15 +29,11 @@ export function NavbarConnectButton() {
 
   const connected = solConnected || evmConnected;
 
-  useEffect(() => {
-    if (connected && pathname === '/') {
-      router.push('/dashboard');
-    }
-  }, [connected, pathname, router]);
+
 
   if (!mounted) {
     return (
-      <button className="px-5 py-2 rounded-xl bg-white/5 text-white/50 text-sm font-semibold transition-all border border-border cursor-not-allowed flex items-center gap-2">
+      <button className={`${variant === 'form' ? 'btn-connect opacity-50' : 'px-5 py-2 rounded-xl bg-white/5 text-white/50 text-sm font-semibold transition-all border border-border'} cursor-not-allowed flex items-center justify-center gap-2 w-full md:w-auto`}>
         <Wallet className="w-4 h-4" />
         Loading...
       </button>
@@ -53,9 +49,9 @@ export function NavbarConnectButton() {
           if (solConnected) solDisconnect();
           if (evmConnected) evmDisconnect();
         }}
-        className="px-5 py-2 rounded-xl bg-primary/20 text-primary hover:bg-error/20 hover:text-error hover:border-error/30 text-sm font-semibold transition-all border border-primary/30 flex items-center gap-2 group"
+        className={`${variant === 'form' ? 'btn-connect-active' : 'px-5 py-2 rounded-xl bg-primary/20 text-primary hover:bg-error/20 hover:text-error hover:border-error/30 text-sm font-semibold transition-all border border-primary/30'} flex items-center justify-center gap-2 group w-full md:w-auto`}
       >
-        <Wallet className="w-4 h-4" />
+        <Wallet className="w-4 h-4 group-hover:hidden" />
         <span className="group-hover:hidden">{shortAddress}</span>
         <span className="hidden group-hover:inline">Disconnect</span>
       </button>
@@ -66,7 +62,7 @@ export function NavbarConnectButton() {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-foreground text-sm font-semibold transition-all border border-border flex items-center gap-2"
+        className={`${variant === 'form' ? 'btn-connect' : 'px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-foreground text-sm font-semibold transition-all border border-border'} flex items-center justify-center gap-2 w-full md:w-auto`}
       >
         <Wallet className="w-4 h-4" />
         Connect Wallet
@@ -92,10 +88,10 @@ export function NavbarConnectButton() {
                 className="flex items-center justify-between p-4 rounded-xl bg-surface border border-white/[0.15] hover:border-white/30 hover:bg-white/5 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <div className="w-5 h-5 rounded-full bg-blue-500" />
+                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-blue-500" />
                   </div>
-                  <span className="font-bold text-foreground">Ethereum (EVM)</span>
+                  <span className="font-bold text-foreground">Base (EVM)</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-foreground transition-colors" />
               </button>
