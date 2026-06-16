@@ -3,16 +3,16 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #0F0A0E; /* Deep Cosmic Rose/Black */
+  --background: #030303; /* Deep Neutral Black */
   --foreground: #FFFFFF; /* Pure White */
   
-  --primary: #EC4899; /* Pink 500 */
-  --primary-hover: #DB2777; /* Pink 600 */
+  --primary: #10B981; /* Emerald 500 */
+  --primary-hover: #059669; /* Emerald 600 */
   
-  --secondary: #10B981; /* Emerald 500 */
+  --secondary: #F43F5E; /* Rose 500 */
   
-  --surface: #161115; /* Deep Rose Surface */
-  --surface-hover: #20171D;
+  --surface: #0A0A0A; /* Neutral Dark Surface */
+  --surface-hover: #121212;
   --border: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.15);
   
@@ -42,7 +42,10 @@
 }
 
 body {
-  background-color: var(--background);
+  background-color: #050505;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.07), transparent 45%),
+    radial-gradient(circle at 85% 30%, rgba(244, 63, 94, 0.07), transparent 45%);
   color: var(--foreground);
   background-attachment: fixed;
   font-family: var(--font-sans);
@@ -68,10 +71,10 @@ body {
 @layer components {
   /* Buttons */
   .btn-primary {
-    @apply w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-[1.5rem] transition-all shadow-[0_4px_20px_rgba(236,72,153,0.3)];
+    @apply w-full flex items-center justify-center gap-2 bg-surface border border-primary/50 text-primary hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed font-bold py-3 px-4 rounded-[1.5rem] transition-all shadow-[0_4px_20px_rgba(16,185,129,0.15)];
   }
   .btn-primary-lg {
-    @apply w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-[1.5rem] transition-all shadow-[0_4px_20px_rgba(236,72,153,0.3)];
+    @apply w-full flex items-center justify-center gap-2 bg-surface border border-primary/50 text-primary hover:bg-primary/10 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed font-bold py-4 px-6 rounded-[1.5rem] transition-all shadow-[0_4px_20px_rgba(16,185,129,0.15)];
   }
   .btn-secondary {
     @apply flex-1 py-2 rounded-2xl text-sm font-semibold transition-all bg-surface text-zinc-400 border border-white/[0.08] hover:bg-surface-hover;

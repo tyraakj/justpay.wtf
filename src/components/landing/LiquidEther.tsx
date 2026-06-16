@@ -576,6 +576,7 @@ export default function LiquidEther({
         this.line = new THREE.LineSegments(boundaryG, boundaryM);
         this.scene.add(this.line);
       }
+      // @ts-expect-error - Overriding base class method with different signature
       update({ dt, isBounce, BFECC }: any) {
         this.uniforms.dt.value = dt;
         this.line.visible = isBounce;
@@ -590,6 +591,7 @@ export default function LiquidEther({
         super({ output: simProps.dst });
         this.init(simProps);
       }
+      // @ts-expect-error - Overriding base class method with different signature
       init(simProps: any) {
         super.init();
         const mouseG = new THREE.PlaneGeometry(1, 1);
@@ -608,6 +610,7 @@ export default function LiquidEther({
         this.mouse = new THREE.Mesh(mouseG, mouseM);
         this.scene.add(this.mouse);
       }
+      // @ts-expect-error - Overriding base class method with different signature
       update(props: any) {
         const forceX = (Mouse.diff.x / 2) * props.mouse_force;
         const forceY = (Mouse.diff.y / 2) * props.mouse_force;
@@ -650,6 +653,7 @@ export default function LiquidEther({
         });
         this.init();
       }
+      // @ts-expect-error - Overriding base class method with different signature
       update({ viscous, iterations, dt }: any) {
         let fbo_in, fbo_out;
         this.uniforms.v.value = viscous;
@@ -687,6 +691,7 @@ export default function LiquidEther({
         });
         this.init();
       }
+      // @ts-expect-error - Overriding base class method with different signature
       update({ vel }: any) {
         this.uniforms.velocity.value = vel.texture;
         super.update();
@@ -712,6 +717,7 @@ export default function LiquidEther({
         });
         this.init();
       }
+      // @ts-expect-error - Overriding base class method with different signature
       update({ iterations }: any) {
         let p_in, p_out;
         for (let i = 0; i < iterations; i++) {
@@ -748,6 +754,7 @@ export default function LiquidEther({
         });
         this.init();
       }
+      // @ts-expect-error - Overriding base class method with different signature
       update({ vel, pressure }: any) {
         this.uniforms.velocity.value = vel.texture;
         this.uniforms.pressure.value = pressure.texture;

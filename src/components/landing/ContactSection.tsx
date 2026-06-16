@@ -51,8 +51,8 @@ export function ContactSection() {
           </div>
 
           <button 
-            type="submit"
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:opacity-90 text-foreground font-bold py-4 px-6 rounded-[1.5rem] transition-all shadow-[0_4px_20px_rgba(236,72,153,0.3)] mt-2"
+            type="submit" 
+            className="btn-primary mt-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
           >
             <Send className="w-5 h-5" />
             Send to Support
