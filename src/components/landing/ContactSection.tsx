@@ -20,8 +20,8 @@ export function ContactSection() {
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10">
             <MessageSquare className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-4xl font-extrabold text-white">Technical Issues?</h2>
-          <p className="text-lg text-gray-400">
+          <h2 className="text-4xl font-extrabold text-foreground">Technical Issues?</h2>
+          <p className="text-lg text-zinc-400">
             If you're experiencing issues with a payment, routing, or bridge transaction, send us a message and we'll help sort it out immediately.
           </p>
         </div>
@@ -52,13 +52,13 @@ export function ContactSection() {
 
           <button 
             type="submit"
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:opacity-90 text-white font-bold py-4 px-6 rounded-[1.5rem] transition-all shadow-[0_4px_20px_rgba(6,182,212,0.3)] mt-2"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover hover:opacity-90 text-foreground font-bold py-4 px-6 rounded-[1.5rem] transition-all shadow-[0_4px_20px_rgba(236,72,153,0.3)] mt-2"
           >
             <Send className="w-5 h-5" />
             Send to Support
           </button>
           
-          <p className="text-xs text-gray-500 mt-2 flex items-center justify-center gap-1.5">
+          <p className="text-xs text-zinc-500 mt-2 flex items-center justify-center gap-1.5">
             <Mail className="w-3 h-3" /> This will open your default email client.
           </p>
         </form>

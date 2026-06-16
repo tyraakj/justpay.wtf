@@ -15,7 +15,7 @@ export default function LandingPage() {
 
       <HowItWorksSection />
       
-      <div className="relative border-t border-white/5 bg-[#050505]/30">
+      <div className="relative border-t border-border bg-[#050505]/30">
         <ContactSection />
       </div>
     </div>
