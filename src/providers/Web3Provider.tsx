@@ -16,7 +16,7 @@ const queryClient = new QueryClient()
 
 // Sui config
 const suiNetworks = {
-  testnet: { url: 'https://fullnode.testnet.sui.io:443' },
+  testnet: { url: 'https://fullnode.testnet.sui.io:443', network: 'testnet' as const },
 }
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
