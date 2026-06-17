@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { WalletConnectButton } from '@/components/shared/WalletConnectButton'
 import { SmartButton } from '@/components/SmartButton'
+import { useSignAndExecuteTransaction, useCurrentAccount, ConnectButton } from '@mysten/dapp-kit'
+import { buildSuiTransferTx, getSuiExplorerUrl, getSuiBalance } from '@/lib/web3/executeSui'
 
 interface CheckoutClientProps {
   linkId: string
-  chain: 'ethereum' | 'solana'
+  chain: 'ethereum' | 'solana' | 'sui'
   recipientAddress: string
   tokenSymbol: string
   amount: string
@@ -18,22 +20,80 @@ export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, a
   const [txHash, setTxHash] = useState<string | null>(null)
   const [error, setError] = useState<{ type: 'expired' | 'failed_slippage' | 'failed_reverted' | 'unknown', message: string } | null>(null)
 
+  const suiAccount = useCurrentAccount()
+  const { mutateAsync: signAndExecuteSui } = useSignAndExecuteTransaction()
+
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'submitted' | 'completed' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
   // Very basic token mapping for V1 mockup purposes
   const getDestinationTokenAddress = () => {
     if (chain === 'ethereum') {
       if (tokenSymbol === 'USDC') return '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base USDC
       return null // Native ETH
-    } else {
+    } else if (chain === 'solana') {
       if (tokenSymbol === 'USDC') return 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // Solana USDC
       return null // Native SOL
     }
+    return null
   }
 
   const getInputTokenAddress = () => {
     if (payerChain === 'ethereum') {
       return '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Default paying with USDC on Base
-    } else {
+    } else if (payerChain === 'solana') {
       return 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // Default paying with USDC on Solana
+    }
+    return null
+  }
+
+  const handleSuiPayment = async () => {
+    if (!suiAccount) return
+    setPaymentStatus('pending')
+    setError(null)
+    setErrorMessage(null)
+
+    try {
+      const balance = await getSuiBalance(suiAccount.address)
+      if (balance < Number(amount) + 0.01) {
+        throw new Error('Insufficient SUI balance (including gas)')
+      }
+
+      const tx = buildSuiTransferTx(recipientAddress, Number(amount))
+      const result = await signAndExecuteSui({ transaction: tx })
+
+      setTxHash(result.digest)
+      setPaymentStatus('submitted')
+
+      const verification = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sui-webhook`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            link_id: linkId,
+            tx_digest: result.digest,
+            recipient_address: recipientAddress,
+            expected_amount: Number(amount),
+          }),
+        }
+      )
+
+      if (!verification.ok) {
+        const errData = await verification.json()
+        throw new Error(errData.error ?? 'Verification failed')
+      }
+
+      setPaymentStatus('completed')
+      setIsSuccess(true)
+    } catch (err: any) {
+      console.error('Sui payment error:', err)
+      setPaymentStatus('error')
+      setErrorMessage(err.message ?? 'Transaction failed')
+      setError({ type: 'unknown', message: err.message ?? 'Transaction failed' })
     }
   }
 
@@ -50,7 +110,13 @@ export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, a
         {txHash && (
           <div className="mt-4 status-box w-full">
             <p className="form-label text-zinc-500 mb-1">Transaction Hash</p>
-            <p className="text-sm font-mono text-foreground truncate">{txHash}</p>
+            {chain === 'sui' ? (
+              <a href={getSuiExplorerUrl(txHash)} target="_blank" rel="noreferrer" className="text-sm font-mono text-primary hover:underline truncate">
+                {txHash}
+              </a>
+            ) : (
+              <p className="text-sm font-mono text-foreground truncate">{txHash}</p>
+            )}
           </div>
         )}
       </div>
@@ -71,11 +137,52 @@ export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, a
           {error.type === 'unknown' && error.message}
         </p>
         <button 
-          onClick={() => setError(null)}
+          onClick={() => {
+            setError(null)
+            setPaymentStatus('idle')
+            setErrorMessage(null)
+          }}
           className="btn-secondary mt-4 w-full max-w-[200px]"
         >
           Try Again
         </button>
+      </div>
+    )
+  }
+
+  if (chain === 'sui') {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="glass-card p-6 flex flex-col items-center justify-center text-center gap-4">
+          {!suiAccount ? (
+            <ConnectButton connectText="Connect Sui Wallet" />
+          ) : (
+            <button
+              className="btn-primary w-full"
+              onClick={handleSuiPayment}
+              disabled={['pending', 'submitted'].includes(paymentStatus)}
+            >
+              {paymentStatus === 'pending'  ? 'Confirm in wallet...' :
+               paymentStatus === 'submitted' ? 'Verifying on chain...' :
+               `Pay ${amount} SUI`}
+            </button>
+          )}
+
+          {paymentStatus === 'completed' && txHash && (
+            <a
+              href={getSuiExplorerUrl(txHash)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-primary hover:underline mt-2"
+            >
+              ✅ Payment confirmed — View on Sui Explorer →
+            </a>
+          )}
+
+          {paymentStatus === 'error' && errorMessage && (
+            <p className="text-sm text-error mt-2">{errorMessage}</p>
+          )}
+        </div>
       </div>
     )
   }
