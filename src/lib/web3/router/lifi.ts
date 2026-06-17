@@ -2,10 +2,11 @@ import { createClient, getQuote, getStatus, getToken, QuoteRequest } from '@lifi
 
 export const lifiClient = createClient({
   integrator: 'justpay',
+  disableVersionCheck: true,
 });
 
 // Helper to convert chain names to LI.FI chain IDs
-export const getLifiChainId = (chainName: string): number => {
+export const getLifiChainId = (chainName: string): number | string => {
   switch (chainName.toLowerCase()) {
     case 'ethereum': return 1;
     case 'base': return 8453;
@@ -13,14 +14,18 @@ export const getLifiChainId = (chainName: string): number => {
     case 'arbitrum': return 42161;
     case 'optimism': return 10;
     case 'bsc': return 56;
-    case 'solana': return 1151111081099710;
-    case 'sui': return 9270000000000000;
+    case 'solana': return 'sol';
+    case 'sui': return 'sui';
+    // Testnets
+    case 'sepolia': return 11155111;
+    case 'basesepolia': return 84532;
+    case 'solanadevnet': return 'sol';
+    case 'suitestnet': return 'sui';
     default: throw new Error(`Unsupported chain: ${chainName}`);
   }
 };
 
 export interface LifiQuoteParams {
-  fromChain: number;
   toChain: number;
   fromToken: string;
   toToken: string;

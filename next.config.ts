@@ -11,7 +11,7 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' blob: data: https:;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' ${supabaseUrls} ws://localhost:3000 https://quote-api.jup.ag https://api.jup.ag https://api.0x.org https://dln.debridge.finance https://li.quest https://api.resend.com wss://*.walletconnect.com https://*.walletconnect.com https://*.infura.io https://*.alchemy.com https://rpc.helius.xyz https://fullnode.testnet.sui.io;
+  connect-src 'self' ${supabaseUrls} ws://localhost:3000 https://quote-api.jup.ag https://api.jup.ag https://api.0x.org https://dln.debridge.finance https://li.quest https://api.resend.com wss://*.walletconnect.com https://*.walletconnect.com https://*.infura.io https://*.alchemy.com https://rpc.helius.xyz https://fullnode.testnet.sui.io https://registry.npmjs.org;
   frame-src 'self' https://verify.walletconnect.com;
   object-src 'none';
   base-uri 'self';

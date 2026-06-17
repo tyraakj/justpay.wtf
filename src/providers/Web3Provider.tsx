@@ -16,11 +16,13 @@ const queryClient = new QueryClient()
 
 // Sui config
 const suiNetworks = {
+  mainnet: { url: 'https://fullnode.mainnet.sui.io:443', network: 'mainnet' as const },
   testnet: { url: 'https://fullnode.testnet.sui.io:443', network: 'testnet' as const },
 }
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
-  const endpoint = useMemo(() => typeof window !== 'undefined' ? window.location.origin + '/api/rpc/solana' : 'https://api.mainnet-beta.solana.com', [])
+  const isTestnet = process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true';
+  const endpoint = useMemo(() => isTestnet ? 'https://api.devnet.solana.com' : (typeof window !== 'undefined' ? window.location.origin + '/api/rpc/solana' : 'https://api.mainnet-beta.solana.com'), [isTestnet])
   const wallets = useMemo(() => [], [])
   const onError = useCallback((error: Error) => {
     console.error(error);
