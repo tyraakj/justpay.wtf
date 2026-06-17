@@ -7,10 +7,12 @@ import { injected } from 'wagmi/connectors';
 import { Wallet, X, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { ConnectModal, useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
 
 export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar' | 'form' }) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSuiModalOpen, setIsSuiModalOpen] = useState(false);
   
   const { publicKey, connected: solConnected, disconnect: solDisconnect } = useWallet();
   const { setVisible: setSolanaModalVisible } = useWalletModal();
@@ -18,6 +20,10 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
   const { address: evmAddress, isConnected: evmConnected } = useAccount();
   const { connect: evmConnect } = useConnect();
   const { disconnect: evmDisconnect } = useDisconnect();
+
+  const suiAccount = useCurrentAccount();
+  const { mutate: suiDisconnect } = useDisconnectWallet();
+  const suiConnected = !!suiAccount;
 
   const router = useRouter();
   const pathname = usePathname();
@@ -27,7 +33,7 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
     setMounted(true);
   }, []);
 
-  const connected = solConnected || evmConnected;
+  const connected = solConnected || evmConnected || suiConnected;
 
 
 
@@ -41,13 +47,14 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
   }
 
   if (connected) {
-    const address = solConnected ? publicKey?.toBase58() : evmAddress;
+    const address = solConnected ? publicKey?.toBase58() : evmConnected ? evmAddress : suiAccount?.address;
     const shortAddress = address ? `${address.slice(0, 4)}...${address.slice(-4)}` : '';
     return (
       <button 
         onClick={() => {
           if (solConnected) solDisconnect();
           if (evmConnected) evmDisconnect();
+          if (suiConnected) suiDisconnect();
         }}
         className={`${variant === 'form' ? 'btn-connect-active' : 'px-5 py-2 rounded-xl bg-primary/20 text-primary hover:bg-error/20 hover:text-error hover:border-error/30 text-sm font-semibold transition-all border border-primary/30'} flex items-center justify-center gap-2 group w-full md:w-auto`}
       >
@@ -67,6 +74,11 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
         <Wallet className="w-4 h-4" />
         Connect Wallet
       </button>
+
+      <ConnectModal
+        open={isSuiModalOpen}
+        onOpenChange={setIsSuiModalOpen}
+      />
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -108,6 +120,22 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
                     <div className="w-5 h-5 rounded-full bg-purple-500" />
                   </div>
                   <span className="font-bold text-foreground">Solana</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-foreground transition-colors" />
+              </button>
+
+              <button 
+                onClick={() => {
+                  setIsOpen(false);
+                  setIsSuiModalOpen(true);
+                }}
+                className="flex items-center justify-between p-4 rounded-xl bg-surface border border-white/[0.15] hover:border-white/30 hover:bg-white/5 transition-all group w-full"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#6FBCF0]/20 flex items-center justify-center">
+                    <img src="/icons/sui.svg" alt="Sui" className="w-5 h-5" />
+                  </div>
+                  <span className="font-bold text-foreground">Sui</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-foreground transition-colors" />
               </button>

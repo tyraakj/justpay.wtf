@@ -4,6 +4,7 @@ export type PaymentLinkRequest = {
   creatorAddress: string;
   creatorChain: 'ethereum' | 'solana' | 'sui';
   tokenSymbol: string;
+  tokenAddress?: string;
   amount: string;
   creatorEmail?: string;
   label?: string;

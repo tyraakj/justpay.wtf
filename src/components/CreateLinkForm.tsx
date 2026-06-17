@@ -51,6 +51,7 @@ export function CreateLinkForm() {
         creatorAddress: address,
         creatorChain: chain === 'base' ? 'ethereum' : chain === 'sui' ? 'sui' : 'solana',
         tokenSymbol,
+        tokenAddress: chain === 'sui' ? '0x2::sui::SUI' : undefined,
         amount,
         creatorEmail: email || undefined,
         memo: memo || undefined,
