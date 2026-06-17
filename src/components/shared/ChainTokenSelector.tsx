@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 
-export type SupportedChain = 'ethereum' | 'base' | 'solana';
+export type SupportedChain = 'ethereum' | 'base' | 'solana' | 'sui';
 
 interface ChainTokenSelectorProps {
   selectedChain: SupportedChain;
@@ -22,6 +22,10 @@ const SUPPORTED_NETWORKS: Record<SupportedChain, { name: string; tokens: string[
   solana: {
     name: 'Solana',
     tokens: ['SOL', 'USDC', 'USDT']
+  },
+  sui: {
+    name: 'Sui',
+    tokens: ['SUI']
   }
 };
 
@@ -32,7 +36,7 @@ export function ChainTokenSelector({ selectedChain, selectedToken, onChainSelect
       <div className="flex flex-col gap-2">
         <label className="form-label">Network</label>
         <div className="flex gap-2 bg-surface p-1 rounded-2xl border border-white/[0.08]">
-          {(Object.entries(SUPPORTED_NETWORKS) as [SupportedChain, any][]).filter(([k]) => k === 'base' || k === 'solana').map(([key, config]) => (
+          {(Object.entries(SUPPORTED_NETWORKS) as [SupportedChain, any][]).filter(([k]) => k === 'base' || k === 'solana' || k === 'sui').map(([key, config]) => (
             <button
               key={key}
               onClick={() => {

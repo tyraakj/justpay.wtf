@@ -12,7 +12,7 @@ import { ChainTokenSelector, SupportedChain } from './shared/ChainTokenSelector'
 
 export function CreateLinkForm() {
   const [address, setAddress] = useState('');
-  const [chain, setChain] = useState<'base' | 'solana'>('base');
+  const [chain, setChain] = useState<'base' | 'solana' | 'sui'>('base');
   const [amount, setAmount] = useState('');
   const [tokenSymbol, setTokenSymbol] = useState('USDC');
   const [email, setEmail] = useState('');
@@ -49,7 +49,7 @@ export function CreateLinkForm() {
 
       const data = await createPaymentLink({
         creatorAddress: address,
-        creatorChain: chain === 'base' ? 'ethereum' : 'solana',
+        creatorChain: chain === 'base' ? 'ethereum' : chain === 'sui' ? 'sui' : 'solana',
         tokenSymbol,
         amount,
         creatorEmail: email || undefined,
@@ -99,7 +99,7 @@ export function CreateLinkForm() {
           type="text" 
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder={chain === 'base' ? "0x..." : "Solana address"} 
+          placeholder={chain === 'base' ? "0x..." : chain === 'sui' ? "0x... (64 hex chars)" : "Solana address"} 
           className="input-field"
         />
       </div>
