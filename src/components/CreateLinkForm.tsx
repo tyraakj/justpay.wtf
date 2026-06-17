@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useCurrentAccount } from '@mysten/dapp-kit';
 import { WalletConnectButton } from './shared/WalletConnectButton';
 import { createPaymentLink } from '../lib/payment';
 import { FeeDisclosureBanner } from './shared/FeeDisclosureBanner';
@@ -23,7 +24,8 @@ export function CreateLinkForm() {
 
   const { address: evmAddress } = useAccount();
   const { publicKey } = useWallet();
-  const connectedAddress = evmAddress || publicKey?.toBase58();
+  const suiAccount = useCurrentAccount();
+  const connectedAddress = evmAddress || publicKey?.toBase58() || suiAccount?.address;
 
   useEffect(() => {
     if (connectedAddress) {
@@ -49,9 +51,9 @@ export function CreateLinkForm() {
 
       const data = await createPaymentLink({
         creatorAddress: address,
-        creatorChain: chain === 'base' ? 'ethereum' : chain === 'sui' ? 'sui' : 'solana',
+        creatorChain: chain,
         tokenSymbol,
-        tokenAddress: chain === 'sui' ? '0x2::sui::SUI' : undefined,
+        tokenAddress: chain === 'sui' || chain === 'suiTestnet' ? '0x2::sui::SUI' : undefined,
         amount,
         creatorEmail: email || undefined,
         memo: memo || undefined,

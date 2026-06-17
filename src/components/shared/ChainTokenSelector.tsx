@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 
-export type SupportedChain = 'ethereum' | 'base' | 'solana' | 'sui';
+import { ENABLE_TESTNETS } from '@/lib/config/network';
+
+export type SupportedChain = 'ethereum' | 'base' | 'solana' | 'sui' | 'sepolia' | 'baseSepolia' | 'solanaDevnet' | 'suiTestnet';
 
 interface ChainTokenSelectorProps {
   selectedChain: SupportedChain;
@@ -10,23 +12,17 @@ interface ChainTokenSelectorProps {
   onTokenSelect: (token: string) => void;
 }
 
-const SUPPORTED_NETWORKS: Record<SupportedChain, { name: string; tokens: string[] }> = {
-  ethereum: {
-    name: 'Ethereum',
-    tokens: ['ETH', 'USDC', 'USDT']
-  },
-  base: {
-    name: 'Base L2',
-    tokens: ['ETH', 'USDC']
-  },
-  solana: {
-    name: 'Solana',
-    tokens: ['SOL', 'USDC', 'USDT']
-  },
-  sui: {
-    name: 'Sui',
-    tokens: ['SUI']
-  }
+const SUPPORTED_NETWORKS: Record<string, { name: string; tokens: string[], isTestnet?: boolean }> = {
+  ethereum: { name: 'Ethereum', tokens: ['ETH', 'USDC', 'USDT'] },
+  base: { name: 'Base L2', tokens: ['ETH', 'USDC'] },
+  solana: { name: 'Solana', tokens: ['SOL', 'USDC', 'USDT'] },
+  sui: { name: 'Sui', tokens: ['SUI'] },
+  
+  // Testnets
+  sepolia: { name: 'Sepolia (ETH)', tokens: ['ETH', 'USDC'], isTestnet: true },
+  baseSepolia: { name: 'Base Sepolia', tokens: ['ETH', 'USDC'], isTestnet: true },
+  solanaDevnet: { name: 'Solana Devnet', tokens: ['SOL', 'USDC'], isTestnet: true },
+  suiTestnet: { name: 'Sui Testnet', tokens: ['SUI'], isTestnet: true }
 };
 
 export function ChainTokenSelector({ selectedChain, selectedToken, onChainSelect, onTokenSelect }: ChainTokenSelectorProps) {
@@ -35,8 +31,11 @@ export function ChainTokenSelector({ selectedChain, selectedToken, onChainSelect
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-2">
         <label className="form-label">Network</label>
-        <div className="flex gap-2 bg-surface p-1 rounded-2xl border border-white/[0.08]">
-          {(Object.entries(SUPPORTED_NETWORKS) as [SupportedChain, any][]).filter(([k]) => k === 'base' || k === 'solana' || k === 'sui').map(([key, config]) => (
+        <div className="flex flex-wrap gap-2 bg-surface p-1 rounded-2xl border border-white/[0.08]">
+          {Object.entries(SUPPORTED_NETWORKS)
+            .filter(([_, config]) => ENABLE_TESTNETS ? true : !config.isTestnet)
+            .filter(([k]) => ['base', 'solana', 'sui', 'baseSepolia', 'solanaDevnet', 'suiTestnet'].includes(k)) // Currently enabled networks
+            .map(([key, config]) => (
             <button
               key={key}
               onClick={() => {
