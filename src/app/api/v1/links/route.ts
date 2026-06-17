@@ -17,6 +17,14 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
+    if (body.chain === 'sui' || body.creatorChain === 'sui') {
+      const suiAddressRegex = /^0x[a-fA-F0-9]{64}$/
+      const address = body.recipient_address || body.creatorAddress
+      if (!suiAddressRegex.test(address)) {
+        return NextResponse.json({ error: 'Invalid Sui address' }, { status: 400 })
+      }
+    }
+
     // Proxy the request to the existing create-link edge function
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const response = await fetch(`${supabaseUrl}/functions/v1/create-link`, {

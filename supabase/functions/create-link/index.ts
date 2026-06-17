@@ -8,7 +8,7 @@ const corsHeaders = {
 }
 
 const STRICT_TOKEN_LIST = [
-  'USDC', 'USDT', 'DAI', 'WETH', 'WSOL', 'EURC', 'USDe', 'ETH', 'SOL'
+  'USDC', 'USDT', 'DAI', 'WETH', 'WSOL', 'EURC', 'USDe', 'ETH', 'SOL', 'SUI'
 ]
 
 serve(async (req) => {
@@ -33,6 +33,23 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Minimum link amount is $1.00 to prevent spam' }), { 
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       })
+    }
+
+    if (creatorChain === 'sui') {
+      const suiAddressRegex = /^0x[a-fA-F0-9]{64}$/
+      if (!suiAddressRegex.test(creatorAddress)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid Sui address format' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      if (tokenSymbol !== 'SUI' || tokenAddress !== '0x2::sui::SUI') {
+        return new Response(
+          JSON.stringify({ error: 'Token not supported on Sui testnet' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown'
