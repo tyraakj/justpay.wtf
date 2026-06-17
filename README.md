@@ -353,9 +353,12 @@ NEXT_PUBLIC_DEFAULT_PAYMENT_EXPIRY=15 # minutes
 - Optimism (Chain ID: 10)
 - Polygon (Chain ID: 137)
 - Base (Chain ID: 8453)
+- Sepolia Testnet (Chain ID: 11155111)
+- Base Sepolia Testnet (Chain ID: 84532)
 
 // Solana
 - Mainnet Beta (Cluster: mainnet-beta)
+- Devnet (Cluster: devnet)
 
 // Sui
 - Testnet (Network: testnet)
@@ -695,6 +698,15 @@ Handles Sui payments without push webhook infrastructure:
 - **Amount check**: Sums `balanceChanges` for recipient address with 0.1% tolerance buffer
 - **Idempotency**: `.eq('status', 'pending')` guard on `payment_links` update prevents duplicate processing
 - **Finality**: Sui achieves transaction finality in ~400ms — no block depth wait needed
+
+### Resolution 8: Direct Native Transfer Fallback
+
+Prevents bridge failures for same-chain native token payments:
+
+- **Challenge**: Cross-chain bridge aggregators like LI.FI often reject same-chain quotes for native tokens (e.g. SUI to SUI) or testnet requests.
+- **Solution**: The checkout orchestrator detects if `payerChain === destinationChain` and if no token swaps are needed.
+- **Bypass Mechanism**: Intercepts the quote request and immediately falls back to constructing a raw `viem` or `@mysten/sui` direct transfer transaction block.
+- **Result**: Always-online reliability for native payments, even if external swap APIs are down or unsupported.
 
 ---
 
