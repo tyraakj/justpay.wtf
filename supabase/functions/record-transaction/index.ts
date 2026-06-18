@@ -30,7 +30,8 @@ serve(async (req) => {
       swapFromToken,
       swapProvider,
       bridgeTxHash,
-      bridgeProvider
+      bridgeProvider,
+      lifiRouteId
     } = payload
 
     if (!linkId || !idempotencyKey || !payerAddress || !txHash || !amountPaid || !tokenPaid) {
@@ -43,10 +44,10 @@ serve(async (req) => {
         link_id: linkId,
         idempotency_key: idempotencyKey,
         payer_address: payerAddress,
-        payer_chain: payerChain,
-        tx_hash: txHash,
-        amount_paid: amountPaid,
-        token_paid: tokenPaid,
+        source_chain: payerChain,
+        source_tx_hash: txHash,
+        source_amount: amountPaid,
+        source_token: tokenPaid,
         was_swapped: wasSwapped ?? false,
         swap_from_token: swapFromToken,
         swap_provider: swapProvider,
@@ -54,6 +55,7 @@ serve(async (req) => {
         bridge_provider: bridgeProvider,
         bridge_status: bridgeTxHash ? 'bridging' : null,
         bridge_started_at: bridgeTxHash ? new Date().toISOString() : null,
+        lifi_route_id: lifiRouteId || null,
         status: 'pending' // Awaits webhook confirmation
       })
       .select()
