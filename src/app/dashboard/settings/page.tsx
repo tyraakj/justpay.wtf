@@ -3,22 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { supabase } from '@/lib/supabase'
-
-interface PayoutDestination {
-  id: string
-  address: string
-  chain_family: string
-  is_default: boolean
-}
 
 export default function SettingsPage() {
   const { address: evmAddress } = useAccount()
   const { publicKey } = useWallet()
   const address = evmAddress || publicKey?.toBase58()
 
-  const [destinations, setDestinations] = useState<PayoutDestination[]>([])
-  const [defaultDest, setDefaultDest] = useState<string>('')
   const [notifications, setNotifications] = useState(true)
   const [defaultExpiry, setDefaultExpiry] = useState('15m')
   const [isSaving, setIsSaving] = useState(false)
@@ -32,21 +22,6 @@ export default function SettingsPage() {
     
     const savedNotifs = localStorage.getItem(`justpay_notifs_${address}`)
     if (savedNotifs !== null) setNotifications(savedNotifs === 'true')
-
-    // Load verified destinations
-    const fetchDestinations = async () => {
-      const { data } = await supabase
-        .from('payout_destinations')
-        .select('*')
-        .eq('creator_address', address)
-      
-      if (data) {
-        setDestinations(data)
-        const def = data.find(d => d.is_default)
-        if (def) setDefaultDest(def.id)
-      }
-    }
-    fetchDestinations()
   }, [address])
 
   const handleSave = async () => {
@@ -55,19 +30,6 @@ export default function SettingsPage() {
     try {
       localStorage.setItem(`justpay_expiry_${address}`, defaultExpiry)
       localStorage.setItem(`justpay_notifs_${address}`, notifications.toString())
-
-      if (defaultDest) {
-        // Update DB defaults
-        await supabase
-          .from('payout_destinations')
-          .update({ is_default: false })
-          .eq('creator_address', address)
-
-        await supabase
-          .from('payout_destinations')
-          .update({ is_default: true })
-          .eq('id', defaultDest)
-      }
 
       alert('Settings saved successfully!')
     } catch (e) {
@@ -94,29 +56,6 @@ export default function SettingsPage() {
           </div>
         ) : (
           <>
-            {/* Payout Destinations */}
-            <div className="flex flex-col gap-4">
-              <h2 className="text-lg font-bold text-foreground border-b border-border pb-2">Payout Destinations</h2>
-              <div className="flex flex-col gap-2">
-                <label className="form-label">Default Destination</label>
-                <select 
-                  value={defaultDest} 
-                  onChange={(e) => setDefaultDest(e.target.value)}
-                  className="select-field"
-                >
-                  <option value="">Use connected wallet</option>
-                  {destinations.map(d => (
-                    <option key={d.id} value={d.id}>
-                      {d.chain_family === 'ethereum' ? 'EVM' : 'Solana'} - {d.address.slice(0, 6)}...{d.address.slice(-4)}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-zinc-500 mt-1">
-                  Select a verified destination to use as the default for new payment links.
-                </p>
-              </div>
-            </div>
-
             {/* Link Preferences */}
             <div className="flex flex-col gap-4">
               <h2 className="text-lg font-bold text-foreground border-b border-border pb-2">Link Defaults</h2>

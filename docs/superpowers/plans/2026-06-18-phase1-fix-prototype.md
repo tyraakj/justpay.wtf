@@ -9,6 +9,7 @@
 **Tech Stack:** Next.js 16, React 19, Convex, TypeScript, @solana/web3.js, wagmi/viem, @mysten/dapp-kit, LI.FI SDK v4
 
 **Already completed (from recent commits):**
+
 - CheckoutClient chain type fix (uses `chainFamily` from `getChainConfig()`)
 - LI.FI router `LifiQuoteParams` interface has `fromChain: number | string`
 - Supabase schema consolidated (column renames done in edge functions + migration)
@@ -16,6 +17,7 @@
 - Direct transfer fallback implemented in SmartButton
 
 **Remaining work (this plan):**
+
 - Initialize Convex and write schema/functions
 - Migrate CreateLinkForm from Supabase edge function to Convex mutation
 - Migrate SmartButton's record-transaction call to Convex mutation
@@ -28,6 +30,7 @@
 ### Task 1: Initialize Convex Project
 
 **Files:**
+
 - Create: `convex/schema.ts`
 - Create: `convex/tsconfig.json`
 - Modify: `package.json` (add convex dependency)
@@ -50,7 +53,11 @@ import { v } from "convex/values";
 export default defineSchema({
   paymentLinks: defineTable({
     shortCode: v.string(),
-    linkType: v.union(v.literal("invoice"), v.literal("tip_jar"), v.literal("recurring")),
+    linkType: v.union(
+      v.literal("invoice"),
+      v.literal("tip_jar"),
+      v.literal("recurring"),
+    ),
 
     // Destination
     merchantAddress: v.string(),
@@ -71,7 +78,7 @@ export default defineSchema({
       v.literal("active"),
       v.literal("completed"),
       v.literal("expired"),
-      v.literal("cancelled")
+      v.literal("cancelled"),
     ),
     expiresAt: v.optional(v.number()),
 
@@ -109,7 +116,7 @@ export default defineSchema({
       v.literal("bridging"),
       v.literal("confirmed"),
       v.literal("failed"),
-      v.literal("refunded")
+      v.literal("refunded"),
     ),
     confirmedAt: v.optional(v.number()),
   })
@@ -138,6 +145,7 @@ git commit -m "feat: initialize Convex project with schema"
 ### Task 2: Write Convex Mutations (Create Link + Record Transaction)
 
 **Files:**
+
 - Create: `convex/links.ts`
 - Create: `convex/transactions.ts`
 
@@ -173,7 +181,13 @@ export const createLink = mutation({
     memo: v.optional(v.string()),
     merchantEmail: v.optional(v.string()),
     expiresAt: v.optional(v.number()),
-    linkType: v.optional(v.union(v.literal("invoice"), v.literal("tip_jar"), v.literal("recurring"))),
+    linkType: v.optional(
+      v.union(
+        v.literal("invoice"),
+        v.literal("tip_jar"),
+        v.literal("recurring"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const shortCode = generateShortCode();
@@ -214,7 +228,9 @@ export const getLinksByMerchant = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("paymentLinks")
-      .withIndex("by_merchant", (q) => q.eq("merchantAddress", args.merchantAddress))
+      .withIndex("by_merchant", (q) =>
+        q.eq("merchantAddress", args.merchantAddress),
+      )
       .order("desc")
       .collect();
   },
@@ -261,7 +277,9 @@ export const confirmTransaction = mutation({
   handler: async (ctx, args) => {
     const tx = await ctx.db
       .query("transactions")
-      .withIndex("by_sourceTxHash", (q) => q.eq("sourceTxHash", args.sourceTxHash))
+      .withIndex("by_sourceTxHash", (q) =>
+        q.eq("sourceTxHash", args.sourceTxHash),
+      )
       .unique();
 
     if (!tx) throw new Error("Transaction not found");
@@ -298,7 +316,9 @@ export const getTransactionsByMerchant = query({
     // Get all links for this merchant, then get their transactions
     const links = await ctx.db
       .query("paymentLinks")
-      .withIndex("by_merchant", (q) => q.eq("merchantAddress", args.merchantAddress))
+      .withIndex("by_merchant", (q) =>
+        q.eq("merchantAddress", args.merchantAddress),
+      )
       .collect();
 
     const linkIds = links.map((l) => l._id);
@@ -329,6 +349,7 @@ git commit -m "feat: add Convex mutations and queries for links and transactions
 ### Task 3: Write Convex HTTP Actions (Webhook Receivers)
 
 **Files:**
+
 - Create: `convex/http.ts`
 - Create: `convex/webhooks.ts`
 
@@ -419,6 +440,7 @@ git commit -m "feat: add Convex HTTP actions for Alchemy/Helius webhooks"
 ### Task 4: Write Convex Cron for Link Expiry
 
 **Files:**
+
 - Create: `convex/crons.ts`
 
 - [ ] **Step 1: Write expiry cron**
@@ -447,7 +469,11 @@ export const expireLinks = internalMutation({
 
 const crons = cronJobs();
 
-crons.interval("expire stale links", { minutes: 1 }, internal.crons.expireLinks);
+crons.interval(
+  "expire stale links",
+  { minutes: 1 },
+  internal.crons.expireLinks,
+);
 
 export default crons;
 ```
@@ -464,6 +490,7 @@ git commit -m "feat: add Convex cron for automatic link expiry"
 ### Task 5: Add Convex Provider to Frontend
 
 **Files:**
+
 - Modify: `src/app/layout.tsx`
 - Create: `src/providers/ConvexClientProvider.tsx`
 
@@ -492,10 +519,8 @@ import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 
 // In the body:
 <ConvexClientProvider>
-  <Web3Provider>
-    {/* ... existing content ... */}
-  </Web3Provider>
-</ConvexClientProvider>
+  <Web3Provider>{/* ... existing content ... */}</Web3Provider>
+</ConvexClientProvider>;
 ```
 
 - [ ] **Step 3: Add NEXT_PUBLIC_CONVEX_URL to .env.local**
@@ -516,6 +541,7 @@ git commit -m "feat: add Convex provider to app layout"
 ### Task 6: Migrate CreateLinkForm to Convex
 
 **Files:**
+
 - Modify: `src/components/CreateLinkForm.tsx`
 - Delete: `src/lib/payment.ts`
 
@@ -536,28 +562,28 @@ const handleCreate = async () => {
   try {
     let expiresAt: number | undefined;
     const now = Date.now();
-    if (expiry === '15m') expiresAt = now + 15 * 60 * 1000;
-    else if (expiry === '1h') expiresAt = now + 60 * 60 * 1000;
-    else if (expiry === '24h') expiresAt = now + 24 * 60 * 60 * 1000;
-    else if (expiry === '7d') expiresAt = now + 7 * 24 * 60 * 60 * 1000;
+    if (expiry === "15m") expiresAt = now + 15 * 60 * 1000;
+    else if (expiry === "1h") expiresAt = now + 60 * 60 * 1000;
+    else if (expiry === "24h") expiresAt = now + 24 * 60 * 60 * 1000;
+    else if (expiry === "7d") expiresAt = now + 7 * 24 * 60 * 60 * 1000;
 
     const result = await createLinkMutation({
       merchantAddress: address,
       destinationChain: chain,
       destinationTokenSymbol: tokenSymbol,
-      destinationTokenAddress: chain === 'sui' ? '0x2::sui::SUI' : undefined,
+      destinationTokenAddress: chain === "sui" ? "0x2::sui::SUI" : undefined,
       amount,
       merchantEmail: email || undefined,
       memo: memo || undefined,
-      label: 'justpay.wtf Payment',
+      label: "justpay.wtf Payment",
       expiresAt,
-      linkType: 'invoice',
+      linkType: "invoice",
     });
 
     router.push(`/${result.shortCode}`);
   } catch (error: any) {
     console.error(error);
-    alert(error.message || 'Failed to create link');
+    alert(error.message || "Failed to create link");
   } finally {
     setIsLoading(false);
   }
@@ -583,6 +609,7 @@ git commit -m "feat: migrate CreateLinkForm to Convex mutation"
 ### Task 7: Migrate Checkout Page to Convex
 
 **Files:**
+
 - Modify: `src/app/[linkId]/page.tsx`
 - Modify: `src/app/[linkId]/CheckoutClient.tsx`
 
@@ -647,6 +674,7 @@ git commit -m "feat: migrate checkout page to Convex query, fix chain type"
 ### Task 8: Migrate SmartButton to Record Transaction via Convex
 
 **Files:**
+
 - Modify: `src/components/SmartButton.tsx`
 
 The SmartButton currently calls `fetch(${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/record-transaction, ...)` with fields like `linkId`, `payerAddress`, `payerChain`, `txHash`, `amountPaid`, `tokenPaid`, `bridgeTxHash`, etc. Replace this with a Convex mutation.
@@ -689,6 +717,7 @@ git commit -m "feat: migrate SmartButton to Convex recordTransaction mutation"
 ### Task 9: Migrate Dashboard to Convex Reactive Queries
 
 **Files:**
+
 - Modify: `src/app/dashboard/page.tsx`
 - Modify: `src/app/dashboard/history/page.tsx`
 - Modify: `src/app/dashboard/links/page.tsx`
@@ -702,16 +731,19 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
 // Inside component:
-const links = useQuery(api.links.getLinksByMerchant, 
-  address ? { merchantAddress: address } : "skip"
+const links = useQuery(
+  api.links.getLinksByMerchant,
+  address ? { merchantAddress: address } : "skip",
 );
-const transactions = useQuery(api.transactions.getTransactionsByMerchant,
-  address ? { merchantAddress: address } : "skip"
+const transactions = useQuery(
+  api.transactions.getTransactionsByMerchant,
+  address ? { merchantAddress: address } : "skip",
 );
 
 // These auto-update in real-time when new payments arrive!
-const activeLinks = links?.filter(l => l.status === "active").length ?? 0;
-const totalVolume = transactions?.reduce((sum, tx) => sum + Number(tx.sourceAmount), 0) ?? 0;
+const activeLinks = links?.filter((l) => l.status === "active").length ?? 0;
+const totalVolume =
+  transactions?.reduce((sum, tx) => sum + Number(tx.sourceAmount), 0) ?? 0;
 ```
 
 - [ ] **Step 2: Rewrite history page similarly**
@@ -730,6 +762,7 @@ git commit -m "feat: migrate dashboard to Convex reactive queries"
 ### Task 10: Remove Supabase Dependencies
 
 **Files:**
+
 - Modify: `package.json`
 - Delete: `src/lib/supabase.ts`
 - Delete: `supabase/` directory (migrations, functions, config)
@@ -792,18 +825,18 @@ git push origin main
 
 After this phase, the Convex backend has:
 
-| Function | Type | Purpose |
-|----------|------|---------|
-| `links.createLink` | Mutation | Create a new payment link |
-| `links.getLinkByShortCode` | Query | Fetch link for checkout page |
-| `links.getLinksByMerchant` | Query | Dashboard link list (reactive) |
-| `transactions.recordTransaction` | Mutation | Record payment intent |
-| `transactions.confirmTransaction` | Mutation | Mark tx as confirmed (called by webhooks) |
-| `transactions.getTransactionsByLink` | Query | Get txs for a specific link |
-| `transactions.getTransactionsByMerchant` | Query | Dashboard tx history (reactive) |
-| `webhooks.handleAlchemyWebhook` | HTTP Action | Receive EVM payment events |
-| `webhooks.handleHeliusWebhook` | HTTP Action | Receive Solana payment events |
-| `crons.expireLinks` | Cron (1min) | Auto-expire old links |
+| Function                                 | Type        | Purpose                                   |
+| ---------------------------------------- | ----------- | ----------------------------------------- |
+| `links.createLink`                       | Mutation    | Create a new payment link                 |
+| `links.getLinkByShortCode`               | Query       | Fetch link for checkout page              |
+| `links.getLinksByMerchant`               | Query       | Dashboard link list (reactive)            |
+| `transactions.recordTransaction`         | Mutation    | Record payment intent                     |
+| `transactions.confirmTransaction`        | Mutation    | Mark tx as confirmed (called by webhooks) |
+| `transactions.getTransactionsByLink`     | Query       | Get txs for a specific link               |
+| `transactions.getTransactionsByMerchant` | Query       | Dashboard tx history (reactive)           |
+| `webhooks.handleAlchemyWebhook`          | HTTP Action | Receive EVM payment events                |
+| `webhooks.handleHeliusWebhook`           | HTTP Action | Receive Solana payment events             |
+| `crons.expireLinks`                      | Cron (1min) | Auto-expire old links                     |
 
 ## What's Different from Supabase Approach
 
