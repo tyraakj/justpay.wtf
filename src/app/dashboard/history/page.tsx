@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react';
 import { ArrowDownToLine, Search } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
 
@@ -11,48 +11,18 @@ export default function DashboardHistory() {
   const { publicKey } = useWallet();
   const address = evmAddress || publicKey?.toBase58();
 
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const rawTransactions = useQuery(api.transactions.getTransactionsByMerchant, address ? { merchantAddress: address } : "skip");
+  const loading = rawTransactions === undefined;
 
-  useEffect(() => {
-    async function fetchHistory() {
-      if (!address) {
-        setLoading(false);
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`
-          id,
-          tx_hash,
-          amount_paid,
-          token_paid,
-          payer_chain,
-          status,
-          created_at,
-          payment_links!inner(short_code, creator_address)
-        `)
-        .eq('payment_links.creator_address', address)
-        .order('created_at', { ascending: false });
-
-      if (data) {
-        const formatted = data.map((tx: any) => ({
-          id: `${tx.tx_hash.slice(0, 8)}...${tx.tx_hash.slice(-6)}`,
-          rawTxHash: tx.tx_hash,
-          linkId: tx.payment_links.short_code,
-          amount: `${tx.amount_paid} ${tx.token_paid}`,
-          fromChain: tx.payer_chain,
-          date: new Date(tx.created_at).toLocaleString(),
-          status: tx.status === 'confirmed' ? 'Settled' : tx.status === 'pending' ? 'Pending' : 'Failed'
-        }));
-        setTransactions(formatted);
-      }
-      setLoading(false);
-    }
-    
-    fetchHistory();
-  }, [address]);
+  const transactions = (rawTransactions || []).map((tx) => ({
+    id: `${tx.sourceTxHash.slice(0, 8)}...${tx.sourceTxHash.slice(-6)}`,
+    rawTxHash: tx.sourceTxHash,
+    linkId: tx.linkId,
+    amount: `${tx.sourceAmount} ${tx.sourceToken || 'NATIVE'}`,
+    fromChain: tx.sourceChain,
+    date: new Date(tx._creationTime).toLocaleString(),
+    status: tx.status === 'confirmed' ? 'Settled' : tx.status === 'pending' ? 'Pending' : 'Failed'
+  }));
 
   const handleExportCSV = () => {
     if (transactions.length === 0) return;

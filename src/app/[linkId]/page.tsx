@@ -1,22 +1,35 @@
-import { supabase } from '@/lib/supabase'
+'use client'
+
+import { useParams } from 'next/navigation'
+import { useQuery } from 'convex/react'
+import { api } from '../../../convex/_generated/api'
 import { PaymentCard } from '@/components/PaymentCard'
 import { CheckoutClient } from './CheckoutClient'
-import { notFound } from 'next/navigation'
 
-export default async function PaymentPage({ params }: { params: Promise<{ linkId: string }> }) {
-  const resolvedParams = await params;
-  const { data: link } = await supabase
-    .from('payment_links')
-    .select('*')
-    .eq('short_code', resolvedParams.linkId)
-    .single()
+export default function PaymentPage() {
+  const params = useParams()
+  const linkId = params.linkId as string
 
-  if (!link) {
-    notFound()
+  const link = useQuery(api.links.getLinkByShortCode, { shortCode: linkId })
+
+  if (link === undefined) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-bold text-black uppercase animate-pulse">Loading...</p>
+      </main>
+    )
   }
 
-  const isExpired = link.expires_at ? new Date(link.expires_at) < new Date() : false;
-  const isCancelled = link.status === 'cancelled';
+  if (link === null) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-bold text-black uppercase">Payment link not found.</p>
+      </main>
+    )
+  }
+
+  const isExpired = link.expiresAt ? link.expiresAt < Date.now() : false
+  const isCancelled = link.status === 'cancelled'
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
@@ -26,9 +39,9 @@ export default async function PaymentPage({ params }: { params: Promise<{ linkId
 
       <div className="w-full max-w-md z-10 flex flex-col gap-6">
         <PaymentCard 
-          amount={link.destination_amount}
-          tokenSymbol={link.token_symbol}
-          recipientAddress={link.creator_address}
+          amount={Number(link.amount) || 0}
+          tokenSymbol={link.destinationTokenSymbol}
+          recipientAddress={link.merchantAddress}
           memo={link.label}
         />
 
@@ -45,11 +58,11 @@ export default async function PaymentPage({ params }: { params: Promise<{ linkId
             </div>
           ) : (
             <CheckoutClient 
-              linkId={link.id}
-              chain={link.destination_chain}
-              recipientAddress={link.creator_address}
-              tokenSymbol={link.token_symbol}
-              amount={link.destination_amount.toString()}
+              linkId={link._id}
+              chain={link.destinationChain}
+              recipientAddress={link.merchantAddress}
+              tokenSymbol={link.destinationTokenSymbol}
+              amount={(link.amount || '0').toString()}
             />
           )}
         </div>

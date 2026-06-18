@@ -21,7 +21,7 @@ export const BlockReveal = ({
       transition: {
         duration: duration * 2,
         times: [0, 0.45, 0.55, 1],
-        ease: "easeOut",
+        ease: "easeOut" as const,
         delay: delay + i * stagger,
       },
     }),

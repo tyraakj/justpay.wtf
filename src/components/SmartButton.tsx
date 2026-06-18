@@ -9,6 +9,9 @@ import { Loader2 } from 'lucide-react'
 import { VersionedTransaction } from '@solana/web3.js'
 import { Transaction } from '@mysten/sui/transactions'
 import { createDirectTransferNativeTx } from '@/lib/web3/directTransfer'
+import { useMutation } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import { Id } from "../../convex/_generated/dataModel"
 
 interface SmartButtonProps {
   linkId: string
@@ -23,28 +26,30 @@ interface SmartButtonProps {
   onError?: (error: any) => void
 }
 
-export function SmartButton({ 
-  linkId, 
-  chain, 
-  recipientAddress, 
-  tokenAddress, 
+export function SmartButton({
+  linkId,
+  chain,
+  recipientAddress,
+  tokenAddress,
   payerChain,
   inputTokenAddress,
-  amount, 
+  amount,
   decimals = 18,
   onSuccess,
   onError
 }: SmartButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const { address: evmAddress } = useAccount()
   const { sendTransactionAsync } = useSendTransaction()
-  
+
   const wallet = useWallet()
   const { connection } = useConnection()
 
   const suiAccount = useCurrentAccount()
   const { mutateAsync: signAndExecuteSui } = useSignAndExecuteTransaction()
+
+  const recordTx = useMutation(api.transactions.recordTransaction)
 
   // Helper to determine family
   const isEvm = payerChain === 'ethereum' || payerChain === 'base' || payerChain === 'sepolia' || payerChain === 'baseSepolia';
@@ -69,13 +74,13 @@ export function SmartButton({
       }
 
       const isBridge = payerChain !== chain
-      
+
       const amountBase = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals))).toString()
 
       // 1. Get Quote or Fallback
       let txHash: string;
       let finalFromAmount = amountBase;
-      
+
       try {
         const { quote, fromAmount } = await fetchLifiQuote({
           fromChain: getLifiChainId(payerChain),
@@ -124,7 +129,7 @@ export function SmartButton({
             recipientAddress,
             amountBase
           });
-          
+
           if (isEvm) {
             txHash = await sendTransactionAsync(directTx as any);
           } else if (isSolana) {
@@ -141,33 +146,24 @@ export function SmartButton({
       }
 
       // Record the transaction intent
-      const idempotencyKey = crypto.randomUUID()
-      // Use fromAmount to correctly log the actual token quantity paid
-      // We assume inputToken decimals. If we don't have it locally, we just use raw fromAmount or a heuristic.
-      // We will just store raw string or float representation. 
-      // In a production app we'd fetch decimals, but for now we do rough float conversion.
       const fromDecimals = inputTokenAddress ? (payerChain === 'ethereum' && inputTokenAddress !== '0x0000000000000000000000000000000000000000' ? 6 : 18) : 18;
       const amountPaidFloat = Number(finalFromAmount) / Math.pow(10, fromDecimals);
 
-      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/record-transaction`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          linkId,
-          idempotencyKey,
-          payerAddress,
-          payerChain,
-          txHash,
-          amountPaid: amountPaidFloat,
-          tokenPaid: inputTokenAddress || tokenAddress || 'NATIVE',
-          wasSwapped: true, // LI.FI abstracts this
-          bridgeTxHash: isBridge ? txHash : null,
-          bridgeProvider: 'lifi'
-        })
-      })
+      try {
+        await recordTx({
+          linkId: linkId as Id<"paymentLinks">,
+          payerAddress: payerAddress!,
+          sourceChain: payerChain,
+          sourceToken: inputTokenAddress || tokenAddress || "NATIVE",
+          sourceTxHash: txHash,
+          sourceAmount: String(amountPaidFloat),
+        });
+      } catch (recordError) {
+        console.error("Failed to record transaction:", recordError);
+      }
 
       onSuccess(txHash, isBridge)
-      
+
     } catch (error) {
       console.error(error)
       if (onError) {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
+import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { Navbar } from "@/components/Navbar";
 // NeonBackground removed for Brutalism theme
@@ -25,13 +26,15 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col relative">
-        <Web3Provider>
-          <Navbar />
-          <div className="relative z-10 flex flex-col flex-1">
-            {children}
-          </div>
-          <Footer />
-        </Web3Provider>
+        <ConvexClientProvider>
+          <Web3Provider>
+            <Navbar />
+            <div className="relative z-10 flex flex-col flex-1">
+              {children}
+            </div>
+            <Footer />
+          </Web3Provider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

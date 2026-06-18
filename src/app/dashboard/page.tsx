@@ -1,106 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowUpRight, Activity, X } from 'lucide-react';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { CreateLinkForm } from "@/components/CreateLinkForm";
-import { supabase } from "@/lib/supabase";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAccount } from 'wagmi';
 import { BrutalistButton } from '@/components/brutalism/Button';
 
-interface ActivityItem {
-  id: string;
-  action: string;
-  amount: string;
-  time: string;
-  status: string;
-  timestamp: Date;
-}
-
 export default function DashboardOverview() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [totalVolume, setTotalVolume] = useState(0);
-  const [activeLinks, setActiveLinks] = useState(0);
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const { publicKey } = useWallet();
   const { address: evmAddress } = useAccount();
   const address = publicKey?.toBase58() || evmAddress;
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!address) {
-        setIsLoading(false);
-        setTotalVolume(0);
-        setActiveLinks(0);
-        setActivities([]);
-        return;
-      }
+  const links = useQuery(api.links.getLinksByMerchant, address ? { merchantAddress: address } : "skip");
+  const transactions = useQuery(api.transactions.getTransactionsByMerchant, address ? { merchantAddress: address } : "skip");
 
-      try {
-        setIsLoading(true);
+  const isLoading = links === undefined || transactions === undefined;
+  const activeLinks = links?.filter(l => l.status === 'active').length || 0;
+  const totalVolume = transactions?.reduce((sum, tx) => sum + Number(tx.sourceAmount || 0), 0) || 0;
 
-        // Fetch active links
-        const { data: links, error: linksError } = await supabase
-          .from('payment_links')
-          .select('id, amount, status, created_at')
-          .eq('creator_address', address);
-
-        if (linksError) throw linksError;
-
-        const activeLinksCount = links?.filter(l => l.status === 'active').length || 0;
-        setActiveLinks(activeLinksCount);
-
-        const linkIds = links?.map(l => l.id) || [];
-
-        // Map link creation to activity feed
-        let feed: ActivityItem[] = (links || []).map(l => ({
-          id: `link-${l.id}`,
-          action: 'Link Generated',
-          amount: `$${Number(l.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}`,
-          time: new Date(l.created_at).toLocaleDateString(),
-          status: l.status === 'active' ? 'Active' : 'Completed',
-          timestamp: new Date(l.created_at)
-        }));
-
-        // Fetch transactions for those links
-        if (linkIds.length > 0) {
-          const { data: txs, error: txsError } = await supabase
-            .from('transactions')
-            .select('id, amount_paid, status, created_at, token_paid')
-            .in('link_id', linkIds);
-
-          if (txsError) throw txsError;
-
-          const volume = txs?.reduce((sum, tx) => sum + Number(tx.amount_paid), 0) || 0;
-          setTotalVolume(volume);
-
-          // Add transactions to activity feed
-          const txFeed: ActivityItem[] = (txs || []).map(tx => ({
-            id: `tx-${tx.id}`,
-            action: 'Payment Received',
-            amount: `+${Number(tx.amount_paid).toLocaleString(undefined, {minimumFractionDigits: 2})} ${tx.token_paid}`,
-            time: new Date(tx.created_at).toLocaleDateString(),
-            status: tx.status === 'confirmed' ? 'Settled' : 'Pending',
-            timestamp: new Date(tx.created_at)
-          }));
-
-          feed = [...feed, ...txFeed];
-        }
-
-        feed.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-        setActivities(feed);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [address]);
+  // Build activity feed from links and transactions
+  const activities = [
+    ...(links || []).map(l => ({
+      id: `link-${l._id}`,
+      action: 'Link Generated',
+      amount: `$${Number(l.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+      time: new Date(l._creationTime).toLocaleDateString(),
+      status: l.status === 'active' ? 'Active' : 'Completed',
+      timestamp: l._creationTime
+    })),
+    ...(transactions || []).map(tx => ({
+      id: `tx-${tx._id}`,
+      action: 'Payment Received',
+      amount: `+${Number(tx.sourceAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+      time: new Date(tx._creationTime).toLocaleDateString(),
+      status: tx.status === 'confirmed' ? 'Settled' : 'Pending',
+      timestamp: tx._creationTime
+    }))
+  ].sort((a, b) => b.timestamp - a.timestamp);
 
   return (
     <div className="flex flex-col gap-12">
