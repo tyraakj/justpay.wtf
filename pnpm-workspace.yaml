@@ -1,6 +1,6 @@
 overrides:
-  react: $react
-  react-dom: $react-dom
+  react: 19.2.4
+  react-dom: 19.2.4
   ws: ^8.21.0
   postcss: ^8.5.10
 
