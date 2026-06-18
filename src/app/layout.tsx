@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { ConvexClientProvider } from "@/providers/ConvexClientProvider";
 import { Web3Provider } from "@/providers/Web3Provider";
 import { Navbar } from "@/components/Navbar";
 import { NeonBackground } from "@/components/NeonBackground";
@@ -37,14 +38,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jakarta.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col relative">
-        <Web3Provider>
-          <NeonBackground />
-          <Navbar />
-          <div className="relative z-10 flex flex-col flex-1">
-            {children}
-          </div>
-          <Footer />
-        </Web3Provider>
+        <ConvexClientProvider>
+          <Web3Provider>
+            <NeonBackground />
+            <Navbar />
+            <div className="relative z-10 flex flex-col flex-1">
+              {children}
+            </div>
+            <Footer />
+          </Web3Provider>
+        </ConvexClientProvider>
       </body>
     </html>
   );
