@@ -30,87 +30,74 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden w-full bg-[var(--color-neutral-secondary-soft)] border-b-2 border-[var(--color-border-default)]">
+    <section className="relative overflow-hidden w-full bg-[var(--color-section-cyan)] border-b-2 border-[var(--color-border-default)]">
+
+      {/* Grid Background Pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(transparent_19px,var(--color-border-default)_20px),linear-gradient(90deg,transparent_19px,var(--color-border-default)_20px)] bg-[length:40px_40px] opacity-[0.15] pointer-events-none" />
 
       {/* Full Width Falling Coins Layer */}
       <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
         {[...Array(24)].map((_, i) => (
           <motion.div
-            key={`coin-${i}`}
-            className="absolute text-[30px] md:text-[50px] opacity-[0.15] text-black"
-            initial={{
-              y: -150,
-              rotate: 0
-            }}
-            animate={{
-              y: 1200,
-              rotate: 360
-            }}
-            transition={{
-              duration: 8 + (i % 5) * 2,
-              repeat: Infinity,
-              ease: "linear",
-              delay: (i % 7) * 0.8
-            }}
-            style={{
-              left: `${(i * 4.1) % 100}%`
-            }}
+           key={`coin-${i}`}
+           className="absolute text-[30px] md:text-[50px] opacity-[0.15] text-black"
+           initial={{
+             y: -150,
+             rotate: 0
+           }}
+           animate={{
+             y: 1200,
+             rotate: 360
+           }}
+           transition={{
+             duration: 8 + (i % 5) * 2,
+             repeat: Infinity,
+             ease: "linear",
+             delay: (i % 7) * 0.8
+           }}
+           style={{
+             left: `${(i * 4.1) % 100}%`
+           }}
           >
-            {i % 4 === 0 && '₿'}
-            {i % 4 === 1 && 'Ξ'}
-            {i % 4 === 2 && '◎'}
-            {i % 4 === 3 && <Wallet size="1em" className="inline-block text-black" strokeWidth={2.5} />}
+           {i % 4 === 0 && '₿'}
+           {i % 4 === 1 && 'Ξ'}
+           {i % 4 === 2 && '◎'}
+           {i % 4 === 3 && <Wallet size="1em" className="inline-block text-black" strokeWidth={2.5} />}
           </motion.div>
         ))}
       </div>
 
-      {/* Hero Content Area */}
-      <div className="flex flex-col lg:flex-row w-full max-w-[1152px] mx-auto min-h-[80vh] relative z-10">
+      {/* Centered Hero Content Area */}
+      <div className="flex flex-col items-center w-full max-w-[1152px] mx-auto min-h-[90vh] relative z-10 pt-24 pb-24 px-4 sm:px-6">
 
-        {/* Left Side: Typography */}
+        {/* Top: Typography (Centered) */}
         <motion.div
-          className="flex-1 px-6 py-24 flex flex-col justify-center border-r-0 lg:border-r-2 border-[var(--color-border-default)] z-10 bg-[var(--color-neutral-secondary-soft)]"
+          className="flex flex-col items-center text-center z-10 mb-12"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          <div className="text-[64px] md:text-[80px] lg:text-[100px] font-bold leading-[0.95] text-[var(--color-heading)] tracking-tighter mb-8">
-            <BlockReveal blockColor="var(--color-section-cyan)">
+          <div className="text-[48px] md:text-[64px] lg:text-[80px] font-black leading-[0.95] text-black tracking-tighter mb-6 flex flex-col items-center">
+            <BlockReveal blockColor="var(--color-neutral-primary-soft)">
               {["THE FASTEST", "WAY TO GET", "PAID IN CRYPTO."]}
             </BlockReveal>
           </div>
-          <div className="text-[20px] font-bold text-[var(--color-heading)] mb-10 max-w-xl leading-[1.4]">
+          <div className="text-[18px] md:text-[20px] font-bold text-black mb-8 max-w-xl leading-[1.4] bg-white border-2 border-black p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
             <BlockReveal delay={0.6} blockColor="var(--color-section-pink)" stagger={0} duration={0.4}>
               <p>Generate simple payment links. We handle the complex cross-chain routing, bridging, and swapping automatically. You receive exact USDC instantly.</p>
             </BlockReveal>
           </div>
-
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
-            <Link href="/dashboard" className="w-full sm:w-auto">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <BrutalistButton variant="brand" size="xl" className="w-full sm:w-auto border-[var(--color-border-default)] hover:shadow-[var(--shadow-lg)]">
-                  Create a Free Payment Link
-                </BrutalistButton>
-              </motion.div>
-            </Link>
-          </motion.div>
         </motion.div>
 
-        {/* Right Side: Interactive Create Link Widget */}
-        <div className="flex-1 bg-[var(--color-section-cyan)] flex items-center justify-center p-8 border-t-2 lg:border-t-0 border-[var(--color-border-default)] relative">
-          {/* Grid Background Pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(transparent_19px,var(--color-border-default)_20px),linear-gradient(90deg,transparent_19px,var(--color-border-default)_20px)] bg-[length:40px_40px] opacity-[0.15]" />
-
-          {/* Swap-like Widget */}
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.3 }}
-            className="w-full max-w-[480px] relative z-20"
-          >
-            <CreateLinkForm />
-          </motion.div>
-        </div>
+        {/* Middle: Interactive Create Link Widget */}
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.8 }}
+          className="w-full max-w-[480px] relative z-20"
+        >
+          <CreateLinkForm />
+        </motion.div>
       </div>
 
       {/* Brutalist Marquee Banner at bottom */}

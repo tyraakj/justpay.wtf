@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useCurrentAccount } from '@mysten/dapp-kit';
-import { WalletConnectButton } from './shared/WalletConnectButton';
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { FeeDisclosureBanner } from './shared/FeeDisclosureBanner';
@@ -33,6 +32,9 @@ export function CreateLinkForm() {
 
   useEffect(() => {
     if (connectedAddress) {
+      if (!address) {
+        setAddress(connectedAddress);
+      }
       const savedExpiry = localStorage.getItem(`justpay_expiry_${connectedAddress}`);
       if (savedExpiry) {
         setExpiry(savedExpiry);
@@ -87,17 +89,11 @@ export function CreateLinkForm() {
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      {/* Autofill via Wallet Connect */}
-      <div className="flex justify-between items-center bg-[var(--color-neutral-primary-soft)] border-[3px] border-black p-3 shadow-[4px_4px_0_0_#000]">
-        <span className="text-[14px] font-black uppercase tracking-wider text-black pl-2">Autofill Address</span>
-        <WalletConnectButton variant="form" />
-      </div>
-
       <FeeDisclosureBanner chain={chain} />
 
       {/* Main Widget Box */}
-      <div className="bg-[var(--color-neutral-secondary-soft)] border-4 border-black p-4 shadow-[8px_8px_0_0_#000] flex flex-col gap-4 relative z-10 transition-transform hover:-translate-y-1 hover:shadow-[12px_12px_0_0_#000]">
-        
+      <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_#000] flex flex-col gap-4 relative z-10 transition-transform hover:-translate-y-1 hover:shadow-[12px_12px_0_0_#000]">
+
         {/* Token & Network Selection */}
         <div className="flex flex-col gap-2">
           <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-cyan)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2">Network & Asset</label>
