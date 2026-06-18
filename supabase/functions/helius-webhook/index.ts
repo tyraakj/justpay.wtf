@@ -27,8 +27,8 @@ serve(async (req) => {
       // Check both regular tx_hash and bridge_tx_hash (for deBridge Sol source -> EVM dest)
       const { data: txData, error: txError } = await supabase
         .from('transactions')
-        .select('link_id, payment_links(email_alert)')
-        .or(`tx_hash.eq.${txHash},bridge_tx_hash.eq.${txHash}`)
+        .select('link_id, payment_links(merchant_email)')
+        .or(`source_tx_hash.eq.${txHash},bridge_tx_hash.eq.${txHash}`)
         .single()
 
       if (txError || !txData) {

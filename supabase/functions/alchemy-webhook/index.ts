@@ -26,8 +26,8 @@ serve(async (req) => {
       // 1. Strict duplicate check (Find pending transaction)
       const { data: txData, error: txError } = await supabase
         .from('transactions')
-        .select('link_id, payment_links(email_alert)')
-        .eq('tx_hash', txHash)
+        .select('link_id, payment_links(merchant_email)')
+        .eq('source_tx_hash', txHash)
         .single()
 
       if (txError || !txData) {
