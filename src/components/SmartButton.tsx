@@ -1,6 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useMutation } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import { Id } from "../../convex/_generated/dataModel"
 import { useAccount, useSendTransaction } from 'wagmi'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import { useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit'
@@ -36,6 +39,7 @@ export function SmartButton({
   onError
 }: SmartButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const recordTx = useMutation(api.transactions.recordTransaction)
   
   const { address: evmAddress } = useAccount()
   const { sendTransactionAsync } = useSendTransaction()
@@ -140,31 +144,23 @@ export function SmartButton({
         }
       }
 
-      // Record the transaction intent
-      const idempotencyKey = crypto.randomUUID()
-      // Use fromAmount to correctly log the actual token quantity paid
-      // We assume inputToken decimals. If we don't have it locally, we just use raw fromAmount or a heuristic.
-      // We will just store raw string or float representation. 
-      // In a production app we'd fetch decimals, but for now we do rough float conversion.
+      // Record the transaction via Convex
       const fromDecimals = inputTokenAddress ? (payerChain === 'ethereum' && inputTokenAddress !== '0x0000000000000000000000000000000000000000' ? 6 : 18) : 18;
       const amountPaidFloat = Number(finalFromAmount) / Math.pow(10, fromDecimals);
 
-      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/record-transaction`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          linkId,
-          idempotencyKey,
+      try {
+        await recordTx({
+          linkId: linkId as Id<"paymentLinks">,
           payerAddress,
-          payerChain,
-          txHash,
-          amountPaid: amountPaidFloat,
-          tokenPaid: inputTokenAddress || tokenAddress || 'NATIVE',
-          wasSwapped: true, // LI.FI abstracts this
-          bridgeTxHash: isBridge ? txHash : null,
-          bridgeProvider: 'lifi'
-        })
-      })
+          sourceChain: payerChain,
+          sourceToken: inputTokenAddress || tokenAddress || "NATIVE",
+          sourceTxHash: txHash,
+          sourceAmount: String(amountPaidFloat),
+        });
+      } catch (recordError) {
+        console.error("Failed to record transaction:", recordError);
+        // Don't throw — the payment already went through on-chain
+      }
 
       onSuccess(txHash, isBridge)
       
