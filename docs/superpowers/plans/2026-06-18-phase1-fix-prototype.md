@@ -2,11 +2,26 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace Supabase with Convex as the backend, fix TypeScript errors, and get the payment link flow working end-to-end on testnets. This eliminates all schema drift issues and gives us automatic real-time reactivity.
+**Goal:** Replace Supabase with Convex as the backend and get the payment link flow working end-to-end on testnets. This eliminates all schema drift issues and gives us automatic real-time reactivity.
 
 **Architecture:** Next.js frontend talks to Convex (reactive DB + server functions) for all data operations. Wallet execution still happens client-side via wagmi/wallet-adapter/dapp-kit. On-chain webhooks hit Convex HTTP actions to index events.
 
 **Tech Stack:** Next.js 16, React 19, Convex, TypeScript, @solana/web3.js, wagmi/viem, @mysten/dapp-kit, LI.FI SDK v4
+
+**Already completed (from recent commits):**
+- CheckoutClient chain type fix (uses `chainFamily` from `getChainConfig()`)
+- LI.FI router `LifiQuoteParams` interface has `fromChain: number | string`
+- Supabase schema consolidated (column renames done in edge functions + migration)
+- ChainTokenSelector has `SupportedChain` type with testnet variants
+- Direct transfer fallback implemented in SmartButton
+
+**Remaining work (this plan):**
+- Initialize Convex and write schema/functions
+- Migrate CreateLinkForm from Supabase edge function to Convex mutation
+- Migrate SmartButton's record-transaction call to Convex mutation
+- Migrate checkout page link fetch to Convex query
+- Migrate dashboard pages to Convex reactive queries
+- Remove all Supabase code and dependencies
 
 ---
 
@@ -39,7 +54,7 @@ export default defineSchema({
 
     // Destination
     merchantAddress: v.string(),
-    destinationChain: v.union(v.literal("base"), v.literal("solana"), v.literal("sui")),
+    destinationChain: v.string(), // "base", "solana", "sui", "sepolia", "baseSepolia", "solanaDevnet", "suiTestnet"
     destinationTokenAddress: v.optional(v.string()),
     destinationTokenSymbol: v.string(),
 
@@ -150,7 +165,7 @@ function computeLinkIdHash(shortCode: string): string {
 export const createLink = mutation({
   args: {
     merchantAddress: v.string(),
-    destinationChain: v.union(v.literal("base"), v.literal("solana"), v.literal("sui")),
+    destinationChain: v.string(), // accepts any supported chain key
     destinationTokenSymbol: v.string(),
     destinationTokenAddress: v.optional(v.string()),
     amount: v.optional(v.string()),
@@ -634,7 +649,9 @@ git commit -m "feat: migrate checkout page to Convex query, fix chain type"
 **Files:**
 - Modify: `src/components/SmartButton.tsx`
 
-- [ ] **Step 1: Replace Supabase record-transaction call with Convex mutation**
+The SmartButton currently calls `fetch(${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/record-transaction, ...)` with fields like `linkId`, `payerAddress`, `payerChain`, `txHash`, `amountPaid`, `tokenPaid`, `bridgeTxHash`, etc. Replace this with a Convex mutation.
+
+- [ ] **Step 1: Replace Supabase fetch with Convex mutation**
 
 ```typescript
 import { useMutation } from "convex/react";
@@ -644,19 +661,23 @@ import { Id } from "../../convex/_generated/dataModel";
 // Inside component:
 const recordTx = useMutation(api.transactions.recordTransaction);
 
-// After successful wallet execution, replace the fetch call:
+// Replace the entire fetch(...record-transaction...) block with:
 await recordTx({
   linkId: linkId as Id<"paymentLinks">,
-  payerAddress: address,
+  payerAddress,
   sourceChain: payerChain,
-  sourceToken: inputTokenAddress || undefined,
+  sourceToken: inputTokenAddress || tokenAddress || "NATIVE",
   sourceTxHash: txHash,
-  sourceAmount: amount,
-  lifiRouteId: lifiRouteId || undefined,
+  sourceAmount: String(amountPaidFloat),
+  lifiRouteId: undefined, // LI.FI doesn't return a route ID in current flow
 });
 ```
 
-- [ ] **Step 2: Commit**
+Also remove the `idempotencyKey`, `fromDecimals`, and `amountPaidFloat` calculation block since Convex handles deduplication via the `by_sourceTxHash` index.
+
+- [ ] **Step 2: Remove NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY env vars usage from SmartButton**
+
+- [ ] **Step 3: Commit**
 
 ```bash
 git add src/components/SmartButton.tsx
@@ -741,35 +762,7 @@ git commit -m "chore: remove Supabase dependencies and legacy code"
 
 ---
 
-### Task 11: Fix LI.FI Router Type Issue
-
-**Files:**
-- Modify: `src/lib/web3/router/lifi.ts`
-
-- [ ] **Step 1: Add missing fromChain to interface**
-
-```typescript
-export interface LifiQuoteParams {
-  fromChain: string;
-  fromToken: string;
-  toChain: string;
-  toToken: string;
-  destinationAmountBase: string;
-  fromAddress: string;
-  toAddress: string;
-}
-```
-
-- [ ] **Step 2: Commit**
-
-```bash
-git add src/lib/web3/router/lifi.ts
-git commit -m "fix: add missing fromChain to LifiQuoteParams"
-```
-
----
-
-### Task 12: Verify End-to-End Build
+### Task 11: Verify End-to-End Build
 
 - [ ] **Step 1: Run Convex dev to verify schema + functions deploy**
 
