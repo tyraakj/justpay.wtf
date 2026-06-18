@@ -7,13 +7,10 @@ interface FeeDisclosureBannerProps {
 
 export function FeeDisclosureBanner({ chain }: FeeDisclosureBannerProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-success/10 border border-success/20 text-sm font-medium">
-      <div className="flex flex-col items-center gap-1 text-success">
-        <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4" />
-          <span>Platform Fee: 0%</span>
-        </div>
-        <span className="text-zinc-400 opacity-80 text-xs">Bridge Provider (LI.FI) Fee: ~0.25% + Network Gas</span>
+    <div className="flex items-center justify-center p-4 bg-[var(--color-section-green)] border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] w-full">
+      <div className="flex items-center gap-3 text-black font-black uppercase tracking-wider text-[18px] md:text-[24px]">
+        <Zap className="w-8 h-8" strokeWidth={3} />
+        <span>Platform Fee: 0%</span>
       </div>
     </div>
   );

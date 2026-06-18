@@ -8,6 +8,8 @@ import { Wallet, X, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ConnectModal, useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
+import { BrutalistButton } from '../brutalism/Button';
+import { createPortal } from 'react-dom';
 
 export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar' | 'form' }) {
   const [mounted, setMounted] = useState(false);
@@ -39,10 +41,10 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
 
   if (!mounted) {
     return (
-      <button className={`${variant === 'form' ? 'btn-connect opacity-50' : 'px-5 py-2 rounded-xl bg-white/5 text-white/50 text-sm font-semibold transition-all border border-border'} cursor-not-allowed flex items-center justify-center gap-2 w-full md:w-auto`}>
-        <Wallet className="w-4 h-4" />
-        Loading...
-      </button>
+      <BrutalistButton variant="tertiary" className="opacity-50 cursor-not-allowed">
+        <Wallet className="w-5 h-5 mr-2" strokeWidth={3} />
+        <span className="uppercase tracking-wider">Loading...</span>
+      </BrutalistButton>
     );
   }
 
@@ -50,30 +52,31 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
     const address = solConnected ? publicKey?.toBase58() : evmConnected ? evmAddress : suiAccount?.address;
     const shortAddress = address ? `${address.slice(0, 4)}...${address.slice(-4)}` : '';
     return (
-      <button 
+      <BrutalistButton 
+        variant="brand"
         onClick={() => {
           if (solConnected) solDisconnect();
           if (evmConnected) evmDisconnect();
           if (suiConnected) suiDisconnect();
         }}
-        className={`${variant === 'form' ? 'btn-connect-active' : 'px-5 py-2 rounded-xl bg-primary/20 text-primary hover:bg-error/20 hover:text-error hover:border-error/30 text-sm font-semibold transition-all border border-primary/30'} flex items-center justify-center gap-2 group w-full md:w-auto`}
+        className="group min-w-[140px]"
       >
-        <Wallet className="w-4 h-4 group-hover:hidden" />
-        <span className="group-hover:hidden">{shortAddress}</span>
-        <span className="hidden group-hover:inline">Disconnect</span>
-      </button>
+        <Wallet className="w-5 h-5 mr-2 group-hover:hidden" strokeWidth={3} />
+        <span className="uppercase tracking-wider font-black group-hover:hidden">{shortAddress}</span>
+        <span className="uppercase tracking-wider font-black hidden group-hover:inline text-black">Disconnect</span>
+      </BrutalistButton>
     );
   }
 
   return (
     <>
-      <button 
+      <BrutalistButton 
+        variant="tertiary"
         onClick={() => setIsOpen(true)}
-        className={`${variant === 'form' ? 'btn-connect' : 'px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-foreground text-sm font-semibold transition-all border border-border'} flex items-center justify-center gap-2 w-full md:w-auto`}
       >
-        <Wallet className="w-4 h-4" />
-        Connect Wallet
-      </button>
+        <Wallet className="w-5 h-5 mr-2" strokeWidth={3} />
+        <span className="uppercase tracking-wider font-black">Connect Wallet</span>
+      </BrutalistButton>
 
       <ConnectModal
         trigger={<span className="hidden" />}
@@ -81,32 +84,32 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
         onOpenChange={setIsSuiModalOpen}
       />
 
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass-card w-full max-w-sm relative animate-in fade-in zoom-in duration-200">
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--color-neutral-primary-soft)] border-4 border-black w-full max-w-sm relative animate-in fade-in zoom-in duration-200 shadow-[var(--shadow-xl)] transform rotate-1">
             <button 
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-foreground bg-white/5 rounded-full z-10"
+              className="absolute -top-4 -right-4 bg-[var(--color-section-pink)] border-4 border-black p-2 text-black hover:bg-[var(--color-section-yellow)] shadow-[var(--shadow-xs)] transition-colors z-10"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" strokeWidth={3} />
             </button>
             <div className="p-8 flex flex-col gap-6">
-              <h2 className="text-xl font-bold text-foreground text-center mb-2">Connect Wallet</h2>
+              <h2 className="text-[28px] font-black text-black text-center mb-2 uppercase border-b-4 border-black pb-2">Connect Wallet</h2>
               
               <button 
                 onClick={() => {
                   setIsOpen(false);
                   evmConnect({ connector: injected() });
                 }}
-                className="flex items-center justify-between p-4 rounded-xl bg-surface border border-white/[0.15] hover:border-white/30 hover:bg-white/5 transition-all group"
+                className="flex items-center justify-between p-4 bg-blue-100 border-4 border-black hover:bg-blue-300 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[var(--shadow-sm)] transition-all group w-full"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <div className="w-4 h-4 rounded-full bg-blue-500" />
+                  <div className="w-10 h-10 bg-blue-500 border-2 border-black flex items-center justify-center shadow-[var(--shadow-xs)]">
+                    <div className="w-4 h-4 rounded-full bg-white border-2 border-black" />
                   </div>
-                  <span className="font-bold text-foreground">Base (EVM)</span>
+                  <span className="font-black text-[18px] text-black uppercase tracking-wider">Base (EVM)</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-foreground transition-colors" />
+                <ChevronRight className="w-6 h-6 text-black group-hover:translate-x-1 transition-transform" strokeWidth={3} />
               </button>
 
               <button 
@@ -114,15 +117,15 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
                   setIsOpen(false);
                   setSolanaModalVisible(true);
                 }}
-                className="flex items-center justify-between p-4 rounded-xl bg-surface border border-white/[0.15] hover:border-white/30 hover:bg-white/5 transition-all group"
+                className="flex items-center justify-between p-4 bg-purple-100 border-4 border-black hover:bg-purple-300 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[var(--shadow-sm)] transition-all group w-full"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                    <div className="w-5 h-5 rounded-full bg-purple-500" />
+                  <div className="w-10 h-10 bg-purple-500 border-2 border-black flex items-center justify-center shadow-[var(--shadow-xs)]">
+                    <div className="w-5 h-5 rounded-full bg-white border-2 border-black" />
                   </div>
-                  <span className="font-bold text-foreground">Solana</span>
+                  <span className="font-black text-[18px] text-black uppercase tracking-wider">Solana</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-foreground transition-colors" />
+                <ChevronRight className="w-6 h-6 text-black group-hover:translate-x-1 transition-transform" strokeWidth={3} />
               </button>
 
               <button 
@@ -130,19 +133,20 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
                   setIsOpen(false);
                   setIsSuiModalOpen(true);
                 }}
-                className="flex items-center justify-between p-4 rounded-xl bg-surface border border-white/[0.15] hover:border-white/30 hover:bg-white/5 transition-all group w-full"
+                className="flex items-center justify-between p-4 bg-[#6FBCF0]/20 border-4 border-black hover:bg-[#6FBCF0]/40 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[var(--shadow-sm)] transition-all group w-full"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#6FBCF0]/20 flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#6FBCF0] border-2 border-black flex items-center justify-center shadow-[var(--shadow-xs)]">
                     <img src="/icons/sui.svg" alt="Sui" className="w-5 h-5" />
                   </div>
-                  <span className="font-bold text-foreground">Sui</span>
+                  <span className="font-black text-[18px] text-black uppercase tracking-wider">Sui</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-foreground transition-colors" />
+                <ChevronRight className="w-6 h-6 text-black group-hover:translate-x-1 transition-transform" strokeWidth={3} />
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

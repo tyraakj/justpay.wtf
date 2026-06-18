@@ -82,9 +82,9 @@ export function CreateLinkForm() {
     <div className="flex flex-col gap-4">
       <WalletConnectButton variant="form" />
       <div className="relative flex items-center py-2">
-        <div className="divider-line"></div>
-        <span className="flex-shrink-0 mx-4 form-label text-zinc-500">Or Address</span>
-        <div className="divider-line"></div>
+        <div className="flex-1 border-t-4 border-black border-dashed"></div>
+        <span className="flex-shrink-0 mx-4 text-[14px] font-black uppercase tracking-wider text-black bg-[var(--color-section-yellow)] px-2 py-1 inline-block w-max border-2 border-black">Or Address</span>
+        <div className="flex-1 border-t-4 border-black border-dashed"></div>
       </div>
 
       <FeeDisclosureBanner chain={chain} />
@@ -97,57 +97,57 @@ export function CreateLinkForm() {
       />
 
       <div className="flex flex-col gap-2">
-        <label className="form-label">Destination</label>
+        <label className="text-[14px] font-black uppercase tracking-wider text-black bg-[var(--color-section-yellow)] px-2 py-1 inline-block w-max border-2 border-black">Destination</label>
         <input 
           type="text" 
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder={chain === 'base' ? "0x..." : chain === 'sui' ? "0x... (64 hex chars)" : "Solana address"} 
-          className="input-field"
+          className="w-full border-[3px] border-black bg-white px-4 py-3 text-[16px] font-bold text-black placeholder:text-black/40 shadow-[4px_4px_0px_0px_#000] outline-none focus:-translate-y-[2px] focus:translate-x-[2px] focus:shadow-[6px_6px_0px_0px_#000] transition-all"
         />
       </div>
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2 flex-1">
-          <label className="form-label">Amount</label>
+          <label className="text-[14px] font-black uppercase tracking-wider text-black bg-[var(--color-section-yellow)] px-2 py-1 inline-block w-max border-2 border-black">Amount</label>
           <input 
             type="number" 
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00" 
-            className="input-field"
+            className="w-full border-[3px] border-black bg-white px-4 py-3 text-[16px] font-bold text-black placeholder:text-black/40 shadow-[4px_4px_0px_0px_#000] outline-none focus:-translate-y-[2px] focus:translate-x-[2px] focus:shadow-[6px_6px_0px_0px_#000] transition-all"
           />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="form-label">Memo (Optional)</label>
+        <label className="text-[14px] font-black uppercase tracking-wider text-black bg-[var(--color-section-yellow)] px-2 py-1 inline-block w-max border-2 border-black">Memo (Optional)</label>
         <input 
           type="text" 
           value={memo}
           onChange={(e) => setMemo(e.target.value)}
           placeholder="Invoice #123, Coffee, etc." 
-          className="input-field"
+          className="w-full border-[3px] border-black bg-white px-4 py-3 text-[16px] font-bold text-black placeholder:text-black/40 shadow-[4px_4px_0px_0px_#000] outline-none focus:-translate-y-[2px] focus:translate-x-[2px] focus:shadow-[6px_6px_0px_0px_#000] transition-all"
         />
       </div>
 
       <div className="flex gap-4">
         <div className="flex flex-col gap-2 flex-1">
-          <label className="form-label">Email (Optional)</label>
+          <label className="text-[14px] font-black uppercase tracking-wider text-black bg-[var(--color-section-yellow)] px-2 py-1 inline-block w-max border-2 border-black">Email (Optional)</label>
           <input 
             type="email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="For payment notifications" 
-            className="input-field"
+            className="w-full border-[3px] border-black bg-white px-4 py-3 text-[16px] font-bold text-black placeholder:text-black/40 shadow-[4px_4px_0px_0px_#000] outline-none focus:-translate-y-[2px] focus:translate-x-[2px] focus:shadow-[6px_6px_0px_0px_#000] transition-all"
           />
         </div>
         <div className="flex flex-col gap-2 w-32">
-          <label className="form-label">Expiry</label>
+          <label className="text-[14px] font-black uppercase tracking-wider text-black bg-[var(--color-section-yellow)] px-2 py-1 inline-block w-max border-2 border-black">Expiry</label>
           <select 
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="select-field"
+            className="w-full border-[3px] border-black bg-white px-4 py-3 text-[16px] font-bold text-black shadow-[4px_4px_0px_0px_#000] outline-none focus:-translate-y-[2px] focus:translate-x-[2px] focus:shadow-[6px_6px_0px_0px_#000] transition-all cursor-pointer"
           >
             <option value="15m">15 Mins</option>
             <option value="1h">1 Hour</option>
@@ -161,7 +161,7 @@ export function CreateLinkForm() {
       <button 
         onClick={handleCreate}
         disabled={isLoading || !address || !amount}
-        className="btn-primary mt-2"
+        className="w-full flex items-center justify-center gap-2 border-4 border-black bg-[var(--color-section-pink)] px-6 py-4 text-[20px] font-black uppercase text-black shadow-[4px_4px_0px_0px_#000] hover:-translate-y-[2px] hover:translate-x-[2px] hover:shadow-[6px_6px_0px_0px_#000] transition-all mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Creating...' : 'Create Link'}
         {!isLoading && <ArrowRight className="w-4 h-4" />}
