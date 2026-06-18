@@ -13,7 +13,7 @@ import { ChainTokenSelector, SupportedChain } from './shared/ChainTokenSelector'
 
 export function CreateLinkForm() {
   const [address, setAddress] = useState('');
-  const [chain, setChain] = useState<'base' | 'solana' | 'sui'>('base');
+  const [chain, setChain] = useState<SupportedChain>('base');
   const [amount, setAmount] = useState('');
   const [tokenSymbol, setTokenSymbol] = useState('USDC');
   const [email, setEmail] = useState('');

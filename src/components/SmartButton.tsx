@@ -147,7 +147,7 @@ export function SmartButton({
       // We will just store raw string or float representation. 
       // In a production app we'd fetch decimals, but for now we do rough float conversion.
       const fromDecimals = inputTokenAddress ? (payerChain === 'ethereum' && inputTokenAddress !== '0x0000000000000000000000000000000000000000' ? 6 : 18) : 18;
-      const amountPaidFloat = Number(fromAmount) / Math.pow(10, fromDecimals);
+      const amountPaidFloat = Number(finalFromAmount) / Math.pow(10, fromDecimals);
 
       await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/record-transaction`, {
         method: 'POST',

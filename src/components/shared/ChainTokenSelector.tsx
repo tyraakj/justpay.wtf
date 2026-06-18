@@ -39,7 +39,7 @@ export function ChainTokenSelector({ selectedChain, selectedToken, onChainSelect
             <button
               key={key}
               onClick={() => {
-                onChainSelect(key);
+                onChainSelect(key as SupportedChain);
                 if (!config.tokens.includes(selectedToken)) {
                   onTokenSelect(config.tokens[0]); // fallback to first token if current not supported
                 }

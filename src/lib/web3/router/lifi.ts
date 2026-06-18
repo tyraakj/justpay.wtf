@@ -26,7 +26,8 @@ export const getLifiChainId = (chainName: string): number | string => {
 };
 
 export interface LifiQuoteParams {
-  toChain: number;
+  fromChain: number | string;
+  toChain: number | string;
   fromToken: string;
   toToken: string;
   fromAddress: string;
@@ -37,8 +38,8 @@ export interface LifiQuoteParams {
 export async function fetchLifiQuote(params: LifiQuoteParams) {
   // 1. Fetch token details to get prices and decimals for heuristic
   const [fromTokenInfo, toTokenInfo] = await Promise.all([
-    getToken(lifiClient, params.fromChain, params.fromToken),
-    getToken(lifiClient, params.toChain, params.toToken)
+    getToken(lifiClient, params.fromChain as any, params.fromToken),
+    getToken(lifiClient, params.toChain as any, params.toToken)
   ]);
 
   const destHuman = Number(params.destinationAmountBase) / Math.pow(10, toTokenInfo.decimals);
@@ -57,8 +58,8 @@ export async function fetchLifiQuote(params: LifiQuoteParams) {
 
   while (attempts < maxAttempts) {
     const quoteRequest: QuoteRequest = {
-      fromChain: params.fromChain,
-      toChain: params.toChain,
+      fromChain: params.fromChain as any,
+      toChain: params.toChain as any,
       fromToken: params.fromToken,
       toToken: params.toToken,
       fromAddress: params.fromAddress,

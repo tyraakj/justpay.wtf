@@ -8,7 +8,7 @@ import { getChainConfig } from '@/lib/config/network'
 
 interface CheckoutClientProps {
   linkId: string
-  chain: 'ethereum' | 'solana' | 'sui'
+  chain: string
   recipientAddress: string
   tokenSymbol: string
   amount: string
@@ -17,9 +17,10 @@ interface CheckoutClientProps {
 export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, amount }: CheckoutClientProps) {
   // If destination is a testnet, default the payer to the same testnet family
   const isDestTestnet = getChainConfig(chain)?.isTestnet;
+  const chainFamily = getChainConfig(chain)?.family;
   
   const [payerChain, setPayerChain] = useState<string>(
-    chain === 'ethereum' || chain === 'base' || chain === 'sepolia' || chain === 'baseSepolia' 
+    chainFamily === 'ethereum' 
       ? chain 
       : (isDestTestnet ? 'sepolia' : 'ethereum')
   )
