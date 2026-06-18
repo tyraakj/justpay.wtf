@@ -67,8 +67,8 @@ export function SocialProofSection() {
             whileHover={{ scale: 1.05, rotate: 0 }}
             className="bg-[var(--color-neutral-primary-soft)] border-2 border-[var(--color-border-default)] shadow-[var(--shadow-sm)] p-8 text-center flex flex-col justify-center transform -rotate-2 transition-colors hover:bg-[var(--color-section-green)]"
           >
-            <span className="text-[48px] font-bold text-[var(--color-heading)] leading-none mb-2">10+</span>
-            <span className="text-[16px] font-bold text-[var(--color-body)] uppercase tracking-wider">Supported Chains</span>
+            <span className="text-[48px] font-bold text-[var(--color-heading)] leading-none mb-2">3</span>
+            <span className="text-[16px] font-bold text-black uppercase tracking-wider">Supported Chains</span>
           </motion.div>
           
           <motion.div 
