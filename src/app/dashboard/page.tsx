@@ -200,16 +200,21 @@ export default function DashboardOverview() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[var(--color-neutral-primary-soft)] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-full max-w-xl flex flex-col max-h-[90vh] relative animate-in fade-in zoom-in duration-200">
-            <button 
-              onClick={() => setIsModalOpen(false)}
-              className="absolute -top-4 -right-4 bg-[var(--color-section-pink)] border-4 border-black p-2 text-black hover:bg-[var(--color-section-yellow)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-colors z-20"
-            >
-              <X className="w-6 h-6" strokeWidth={3} />
-            </button>
             <div className="p-6 sm:p-8 relative z-0 overflow-y-auto">
-              <div className="flex flex-col gap-2 mb-6 text-center border-b-4 border-black pb-4 sticky top-0 bg-[var(--color-neutral-primary-soft)] z-10 pt-2">
-                <h2 className="text-[32px] font-black text-black uppercase leading-tight">Create Payment Link</h2>
-                <p className="text-[16px] text-black font-bold">Step 1: Connect your destination wallet</p>
+              <div className="flex flex-col gap-2 mb-6 border-b-4 border-black pb-4 sticky top-0 bg-[var(--color-neutral-primary-soft)] z-10 pt-2">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-[28px] sm:text-[32px] font-black text-black uppercase leading-tight">Create Payment Link</h2>
+                    <p className="text-[14px] sm:text-[16px] text-black font-bold">Step 1: Connect your destination wallet</p>
+                  </div>
+                  <button 
+                    onClick={() => setIsModalOpen(false)}
+                    className="shrink-0 bg-[var(--color-section-pink)] border-[3px] border-black p-2 text-black hover:bg-[var(--color-section-yellow)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center gap-2 font-black uppercase text-[14px]"
+                  >
+                    <X className="w-5 h-5" strokeWidth={3} />
+                    <span className="hidden sm:inline">Back</span>
+                  </button>
+                </div>
               </div>
               <CreateLinkForm />
             </div>
