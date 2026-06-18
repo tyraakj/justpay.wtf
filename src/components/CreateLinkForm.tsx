@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { WalletConnectButton } from './shared/WalletConnectButton';
-import { createPaymentLink } from '../lib/payment';
 import { FeeDisclosureBanner } from './shared/FeeDisclosureBanner';
 import { ChainTokenSelector, SupportedChain } from './shared/ChainTokenSelector';
 
@@ -26,6 +27,7 @@ export function CreateLinkForm() {
   const { publicKey } = useWallet();
   const suiAccount = useCurrentAccount();
   const connectedAddress = evmAddress || publicKey?.toBase58() || suiAccount?.address;
+  const createLinkMutation = useMutation(api.links.createLink);
 
   useEffect(() => {
     if (connectedAddress) {
@@ -41,35 +43,35 @@ export function CreateLinkForm() {
     setIsLoading(true);
     
     try {
-      let expiresAt: string | undefined;
-      const now = new Date();
-      if (expiry === '15m') expiresAt = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
-      else if (expiry === '1h') expiresAt = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
-      else if (expiry === '24h') expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
-      else if (expiry === '7d') expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      let expiresAt: number | undefined;
+      const now = Date.now();
+      if (expiry === '15m') expiresAt = now + 15 * 60 * 1000;
+      else if (expiry === '1h') expiresAt = now + 60 * 60 * 1000;
+      else if (expiry === '24h') expiresAt = now + 24 * 60 * 60 * 1000;
+      else if (expiry === '7d') expiresAt = now + 7 * 24 * 60 * 60 * 1000;
       else if (expiry === 'none') expiresAt = undefined;
 
-      const data = await createPaymentLink({
-        creatorAddress: address,
-        creatorChain: chain,
-        tokenSymbol,
-        tokenAddress: chain === 'sui' || chain === 'suiTestnet' ? '0x2::sui::SUI' : undefined,
+      const result = await createLinkMutation({
+        merchantAddress: address,
+        destinationChain: chain,
+        destinationTokenSymbol: tokenSymbol,
+        destinationTokenAddress: chain === 'sui' || chain === 'suiTestnet' ? '0x2::sui::SUI' : undefined,
         amount,
-        creatorEmail: email || undefined,
+        merchantEmail: email || undefined,
         memo: memo || undefined,
-        expiresAt,
         label: 'justpay.wtf Payment',
+        expiresAt,
+        linkType: 'invoice',
       });
       
       // Save to localStorage LRU
       const existingStr = localStorage.getItem('justpay_links');
       let links = existingStr ? JSON.parse(existingStr) : [];
-      links.unshift({ shortCode: data.short_code, createdAt: new Date().toISOString() });
+      links.unshift({ shortCode: result.shortCode, createdAt: new Date().toISOString() });
       if (links.length > 5) links = links.slice(0, 5);
       localStorage.setItem('justpay_links', JSON.stringify(links));
 
-      // Redirect to payment page
-      router.push(`/${data.short_code}`);
+      router.push(`/${result.shortCode}`);
     } catch (error: any) {
       console.error(error);
       alert(error.message || 'Failed to create link');
