@@ -10,6 +10,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { WalletConnectButton } from './shared/WalletConnectButton';
 import { ChainTokenSelector, SupportedChain } from './shared/ChainTokenSelector';
+import { ExpiryPicker, ExpiryValue, expiryValueToTimestamp } from './ExpiryPicker';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TOKEN_DOMAINS: Record<string, string> = {
@@ -27,7 +28,7 @@ export function CreateLinkForm() {
   const [tokenSymbol, setTokenSymbol] = useState('USDC');
   const [email, setEmail] = useState('');
   const [memo, setMemo] = useState('');
-  const [expiry, setExpiry] = useState('none');
+  const [expiry, setExpiry] = useState<ExpiryValue>({ type: 'never' });
   const [isLoading, setIsLoading] = useState(false);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const router = useRouter();
@@ -43,10 +44,7 @@ export function CreateLinkForm() {
       if (!address) {
         setAddress(connectedAddress);
       }
-      const savedExpiry = localStorage.getItem(`justpay_expiry_${connectedAddress}`);
-      if (savedExpiry) {
-        setExpiry(savedExpiry);
-      }
+
     }
   }, [connectedAddress]);
 
@@ -56,13 +54,7 @@ export function CreateLinkForm() {
     setIsLoading(true);
 
     try {
-      let expiresAt: number | undefined;
-      const now = Date.now();
-      if (expiry === '15m') expiresAt = now + 15 * 60 * 1000;
-      else if (expiry === '1h') expiresAt = now + 60 * 60 * 1000;
-      else if (expiry === '24h') expiresAt = now + 24 * 60 * 60 * 1000;
-      else if (expiry === '7d') expiresAt = now + 7 * 24 * 60 * 60 * 1000;
-      else if (expiry === 'none') expiresAt = undefined;
+      const expiresAt = expiryValueToTimestamp(expiry)
 
       const result = await createLinkMutation({
         receiverAddress: finalAddress,
@@ -214,21 +206,9 @@ export function CreateLinkForm() {
                     className="w-full border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-section-cyan)] transition-colors"
                   />
                 </div>
-                <div className="flex flex-col gap-1 w-28">
-                  <label className="text-[12px] font-black uppercase tracking-wider text-black">Expiry</label>
-                  <select
-                    value={expiry}
-                    onChange={(e) => setExpiry(e.target.value)}
-                    className="w-full border-2 border-black bg-white px-2 py-2 text-sm font-bold text-black outline-none cursor-pointer focus:bg-[var(--color-section-green)] transition-colors"
-                  >
-                    <option value="15m">15 Mins</option>
-                    <option value="1h">1 Hour</option>
-                    <option value="24h">24 Hrs</option>
-                    <option value="7d">7 Days</option>
-                    <option value="none">Never</option>
-                  </select>
-                </div>
               </div>
+
+              <ExpiryPicker value={expiry} onChange={setExpiry} />
             </motion.div>
           )}
         </AnimatePresence>
