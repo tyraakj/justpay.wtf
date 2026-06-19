@@ -36,35 +36,43 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-[linear-gradient(transparent_19px,var(--color-border-default)_20px),linear-gradient(90deg,transparent_19px,var(--color-border-default)_20px)] bg-[length:40px_40px] opacity-[0.15] pointer-events-none" />
 
       {/* Full Width Falling Coins Layer */}
-      <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
-        {[...Array(24)].map((_, i) => (
-          <motion.div
-            key={`coin-${i}`}
-            className="absolute text-[30px] md:text-[50px] opacity-[0.15] text-black"
-            initial={{
-              y: -150,
-              rotate: 0
-            }}
-            animate={{
-              y: 1200,
-              rotate: 360
-            }}
-            transition={{
-              duration: 8 + (i % 5) * 2,
-              repeat: Infinity,
-              ease: "linear",
-              delay: (i % 7) * 0.8
-            }}
-            style={{
-              left: `${(i * 4.1) % 100}%`
-            }}
-          >
-            {i % 4 === 0 && '₿'}
-            {i % 4 === 1 && 'Ξ'}
-            {i % 4 === 2 && '◎'}
-            {i % 4 === 3 && <Wallet size="1em" className="inline-block text-black" strokeWidth={2.5} />}
-          </motion.div>
-        ))}
+      <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden opacity-[0.2]">
+        {[...Array(24)].map((_, i) => {
+          const domains = [
+            'bitcoin.org', 'ethereum.org', 'solana.com', 'sui.io', 
+            'base.org', 'arbitrum.io', 'optimism.io', 'polygon.technology',
+            'monad.xyz', 'binance.com'
+          ];
+          const domain = domains[i % domains.length];
+          return (
+            <motion.div
+             key={`coin-${i}`}
+             className="absolute"
+             initial={{
+               y: -150,
+               rotate: 0,
+               scale: 0.8 + (i % 3) * 0.2
+             }}
+             animate={{
+               y: 1200,
+               rotate: 360
+             }}
+             transition={{
+               duration: 9 + (i % 5) * 2,
+               repeat: Infinity,
+               ease: "linear",
+               delay: (i % 7) * 0.8
+             }}
+             style={{
+               left: `${(i * 4.1) % 100}%`
+             }}
+            >
+             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-[3px] border-black bg-white flex items-center justify-center shadow-[2px_2px_0_0_#000] p-[6px]">
+               <img src={`https://img.logo.dev/${domain}?token=pk_BShsdiwDTuyRVVBW5GadOg`} alt="coin" className="w-full h-full object-contain rounded-full" />
+             </div>
+            </motion.div>
+          )
+        })}
       </div>
 
       {/* Centered Hero Content Area */}
