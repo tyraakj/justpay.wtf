@@ -18,7 +18,7 @@ const SUPPORTED_NETWORKS: Record<string, { name: string; domain: string; tokens:
   base: { name: 'Base L2', domain: 'base.org', tokens: ['ETH', 'USDC'] },
   solana: { name: 'Solana', domain: 'solana.com', tokens: ['SOL', 'USDC', 'USDT'] },
   sui: { name: 'Sui', domain: 'sui.io', tokens: ['SUI'] },
-  
+
   // Testnets
   sepolia: { name: 'Sepolia', domain: 'ethereum.org', tokens: ['ETH', 'USDC'], isTestnet: true },
   baseSepolia: { name: 'Base Sepolia', domain: 'base.org', tokens: ['ETH', 'USDC'], isTestnet: true },
@@ -44,25 +44,24 @@ export function ChainTokenSelector({ selectedChain, selectedToken, onChainSelect
             .filter(([_, config]) => ENABLE_TESTNETS ? true : !config.isTestnet)
             .filter(([k]) => ['base', 'solana', 'sui'].includes(k)) // Currently enabled networks
             .map(([key, config]) => (
-            <button
-              key={key}
-              onClick={() => {
-                onChainSelect(key as SupportedChain);
-                if (!config.tokens.includes(selectedToken)) {
-                  onTokenSelect(config.tokens[0]); // fallback to first token if current not supported
-                }
-              }}
-              className={`flex-1 min-w-[120px] py-3 px-4 text-[16px] font-black uppercase transition-all flex items-center justify-center gap-2 border-[3px] border-black ${
-                selectedChain === key 
-                  ? 'bg-[var(--color-section-cyan)] text-black shadow-[4px_4px_0px_0px_#000] -translate-y-[2px] translate-x-[2px]' 
-                  : 'bg-white text-black shadow-[2px_2px_0px_0px_#000] hover:bg-[var(--color-section-yellow)] hover:shadow-[4px_4px_0px_0px_#000] hover:-translate-y-[2px] hover:translate-x-[2px]'
-              }`}
-            >
-              <img src={`https://img.logo.dev/${config.domain}?token=pk_BShsdiwDTuyRVVBW5GadOg`} alt={config.name} className="w-5 h-5 rounded-full border border-black" />
-              {config.name}
-              {selectedChain === key && <Check className="w-5 h-5" strokeWidth={3} />}
-            </button>
-          ))}
+              <button
+                key={key}
+                onClick={() => {
+                  onChainSelect(key as SupportedChain);
+                  if (!config.tokens.includes(selectedToken)) {
+                    onTokenSelect(config.tokens[0]); // fallback to first token if current not supported
+                  }
+                }}
+                className={`flex-1 min-w-[120px] py-3 px-4 text-[16px] font-black uppercase transition-all flex items-center justify-center gap-2 border-[3px] border-black ${selectedChain === key
+                    ? 'bg-[var(--color-section-cyan)] text-black shadow-[4px_4px_0px_0px_#000] -translate-y-[2px] translate-x-[2px]'
+                    : 'bg-white text-black shadow-[2px_2px_0px_0px_#000] hover:bg-[var(--color-section-yellow)] hover:shadow-[4px_4px_0px_0px_#000] hover:-translate-y-[2px] hover:translate-x-[2px]'
+                  }`}
+              >
+                <img src={`https://img.logo.dev/${config.domain}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={config.name} className="w-5 h-5 object-contain bg-transparent mix-blend-multiply" />
+                {config.name}
+                {selectedChain === key && <Check className="w-5 h-5" strokeWidth={3} />}
+              </button>
+            ))}
         </div>
       </div>
 
@@ -73,13 +72,12 @@ export function ChainTokenSelector({ selectedChain, selectedToken, onChainSelect
             <button
               key={token}
               onClick={() => onTokenSelect(token)}
-              className={`px-4 py-2 flex items-center gap-2 text-[16px] font-black uppercase transition-all border-[3px] border-black ${
-                selectedToken === token
+              className={`px-4 py-2 flex items-center gap-2 text-[16px] font-black uppercase transition-all border-[3px] border-black ${selectedToken === token
                   ? 'bg-[var(--color-section-green)] text-black shadow-[4px_4px_0px_0px_#000] -translate-y-[2px] translate-x-[2px]'
                   : 'bg-white text-black shadow-[2px_2px_0px_0px_#000] hover:bg-[var(--color-section-yellow)] hover:shadow-[4px_4px_0px_0px_#000] hover:-translate-y-[2px] hover:translate-x-[2px]'
-              }`}
+                }`}
             >
-              <img src={`https://img.logo.dev/${TOKEN_DOMAINS[token]}?token=pk_BShsdiwDTuyRVVBW5GadOg`} alt={token} className="w-5 h-5 rounded-full border border-black" />
+              <img src={`https://img.logo.dev/${TOKEN_DOMAINS[token]}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={token} className="w-5 h-5 object-contain bg-transparent mix-blend-multiply" />
               {token}
             </button>
           ))}

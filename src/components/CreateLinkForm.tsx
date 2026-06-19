@@ -146,7 +146,7 @@ export function CreateLinkForm() {
               className="w-full bg-transparent px-2 py-3 text-[32px] md:text-[40px] font-black text-black placeholder:text-black/20 outline-none"
             />
             <div className="flex items-center gap-2 pr-4 bg-white px-3 py-2 border-2 border-black">
-              <img src={`https://img.logo.dev/${TOKEN_DOMAINS[tokenSymbol]}?token=pk_BShsdiwDTuyRVVBW5GadOg`} alt={tokenSymbol} className="w-6 h-6 rounded-full border border-black" />
+              <img src={`https://img.logo.dev/${TOKEN_DOMAINS[tokenSymbol]}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={tokenSymbol} className="w-6 h-6 object-contain bg-transparent" />
               <span className="text-xl font-black">{tokenSymbol}</span>
             </div>
           </div>
