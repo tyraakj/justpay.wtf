@@ -7,12 +7,19 @@ import { useSyncWagmiConfig } from '@lifi/widget-provider-ethereum'
 import { EthereumProvider } from '@lifi/widget-provider-ethereum'
 import { SolanaProvider } from '@lifi/widget-provider-solana'
 import { WalletManagementProviders } from '@lifi/wallet-management'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { getChains, createClient, ChainType } from '@lifi/sdk'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
 
-// Sui imports — kept because @lifi/widget-provider-sui requires @mysten/dapp-kit-react
-// which conflicts with the @mysten/dapp-kit already installed
+// Solana wallet adapter — kept for backward compat with dashboard/auth components
+// that use useWallet() from @solana/wallet-adapter-react
+import { ConnectionProvider, WalletProvider as SolanaWalletProvider } from '@solana/wallet-adapter-react'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import '@solana/wallet-adapter-react-ui/styles.css'
+
+// Sui — kept separate: @lifi/widget-provider-sui requires @mysten/dapp-kit-react
+// which conflicts with @mysten/dapp-kit already installed
 import { SuiClientProvider, WalletProvider as SuiWalletProvider } from '@mysten/dapp-kit'
 import '@mysten/dapp-kit/dist/index.css'
 
@@ -25,10 +32,14 @@ const suiNetworks = {
 
 const lifiClient = createClient({ integrator: 'justpay', disableVersionCheck: true })
 
-// Widget providers passed to WalletManagementProviders.
-// EthereumProvider detects our existing WagmiContext and reuses it (no new provider created).
-// SolanaProvider uses Wallet Standard — discovers all modern Solana wallets automatically.
+// Widget providers for WalletManagementProviders — enables openWalletMenu() throughout the app.
+// EthereumProvider auto-detects our existing WagmiContext and reuses it (no duplication).
+// SolanaProvider uses Wallet Standard (different from wallet-adapter — both can coexist).
 const walletProviders = [EthereumProvider(), SolanaProvider()]
+
+// Minimal MUI theme — required by WalletMenuModal which calls useMediaQuery(theme => ...).
+// Our app doesn't use MUI for UI; this only feeds the wallet modal's breakpoint check.
+const muiTheme = createTheme()
 
 function ChainSyncer() {
   const { data: chains } = useQuery({
@@ -44,8 +55,7 @@ function ChainSyncer() {
 }
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
-  const isTestnet = process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true';
-  // Solana RPC — still needed for @mysten/dapp-kit Sui context and any direct Solana reads
+  const isTestnet = process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true'
   const solanaEndpoint = useMemo(() =>
     isTestnet
       ? 'https://api.devnet.solana.com'
@@ -54,23 +64,29 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
         : 'https://api.mainnet-beta.solana.com',
     [isTestnet]
   )
-  const onSuiError = useCallback((error: Error) => { console.error(error) }, [])
+  const wallets = useMemo(() => [], [])
+  const onError = useCallback((error: Error) => { console.error(error) }, [])
 
   return (
     <WagmiProvider config={config} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>
         <ChainSyncer />
-        {/* WalletManagementProviders wraps children with LI.FI's wallet picker.
-            isExternalContext is not needed — EthereumProvider auto-detects our WagmiContext.
-            openWalletMenu() from useWalletMenu() will show the built-in wallet modal. */}
-        <WalletManagementProviders providers={walletProviders}>
-          {/* Sui kept separate: dapp-kit-react peer dep conflict prevents using SuiProvider() */}
-          <SuiClientProvider networks={suiNetworks} defaultNetwork="testnet">
-            <SuiWalletProvider autoConnect onError={onSuiError}>
-              {children}
-            </SuiWalletProvider>
-          </SuiClientProvider>
-        </WalletManagementProviders>
+        {/* ThemeProvider satisfies WalletMenuModal's useMediaQuery(theme => theme.breakpoints...) */}
+        <ThemeProvider theme={muiTheme}>
+          <WalletManagementProviders providers={walletProviders}>
+            <SuiClientProvider networks={suiNetworks} defaultNetwork="testnet">
+              <SuiWalletProvider autoConnect onError={onError}>
+                <ConnectionProvider endpoint={solanaEndpoint}>
+                  <SolanaWalletProvider wallets={wallets} autoConnect={false} onError={onError}>
+                    <WalletModalProvider>
+                      {children}
+                    </WalletModalProvider>
+                  </SolanaWalletProvider>
+                </ConnectionProvider>
+              </SuiWalletProvider>
+            </SuiClientProvider>
+          </WalletManagementProviders>
+        </ThemeProvider>
       </QueryClientProvider>
     </WagmiProvider>
   )
