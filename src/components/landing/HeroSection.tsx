@@ -72,19 +72,14 @@ export function HeroSection() {
 
         {/* Top: Typography (Centered) */}
         <motion.div
-          className="flex flex-col items-center text-center z-10 mb-12"
+          className="flex flex-col items-center text-center z-10 mb-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           <div className="text-[48px] md:text-[64px] lg:text-[80px] font-black leading-[0.95] text-black tracking-tighter mb-6 flex flex-col items-center">
             <BlockReveal blockColor="var(--color-neutral-primary-soft)">
-              {["THE FASTEST", "WAY TO GET", "PAID IN CRYPTO."]}
-            </BlockReveal>
-          </div>
-          <div className="text-[18px] md:text-[20px] font-bold text-black mb-8 max-w-xl leading-[1.4] bg-white border-2 border-black p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-            <BlockReveal delay={0.6} blockColor="var(--color-section-pink)" stagger={0} duration={0.4}>
-              <p>Generate simple payment links. We handle the complex cross-chain routing, bridging, and swapping automatically. You receive exact USDC instantly.</p>
+              {["THE FASTEST WAY", "TO GET PAID IN CRYPTO."]}
             </BlockReveal>
           </div>
         </motion.div>
@@ -93,10 +88,32 @@ export function HeroSection() {
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.8 }}
-          className="w-full max-w-[480px] relative z-20"
+          transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.6 }}
+          className="w-full max-w-[500px] relative z-20 bg-[var(--color-neutral-secondary-soft)] border-[4px] border-black p-4 md:p-6 shadow-[12px_12px_0_0_rgba(0,0,0,1)] mb-12"
         >
+          <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-4">
+            <h2 className="text-2xl font-black uppercase tracking-tight text-black flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="square" strokeLinejoin="miter"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              Create Link
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[var(--color-section-green)] animate-pulse border-2 border-black" />
+              <span className="text-sm font-bold text-black uppercase tracking-wider">Live</span>
+            </div>
+          </div>
           <CreateLinkForm />
+        </motion.div>
+
+        {/* Bottom: Description */}
+        <motion.div
+          className="flex flex-col items-center text-center z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
+        >
+          <div className="text-[16px] md:text-[18px] font-bold text-black max-w-2xl leading-[1.4] bg-[var(--color-section-pink)] border-2 border-black p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <p>Generate simple payment links. We handle the complex cross-chain routing, bridging, and swapping automatically. You receive exact tokens instantly.</p>
+          </div>
         </motion.div>
       </div>
 
