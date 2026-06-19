@@ -36,8 +36,8 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-[linear-gradient(transparent_19px,var(--color-border-default)_20px),linear-gradient(90deg,transparent_19px,var(--color-border-default)_20px)] bg-[length:40px_40px] opacity-[0.15] pointer-events-none" />
 
       {/* Full Width Falling Coins Layer */}
-      <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden opacity-[0.6]" style={{ perspective: "1000px" }}>
-        {[...Array(24)].map((_, i) => {
+      <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden opacity-[0.8]" style={{ perspective: "1000px" }}>
+        {[...Array(20)].map((_, i) => {
           const domains = [
             'bitcoin.org', 'ethereum.org', 'solana.com', 'sui.io', 
             'base.org', 'arbitrum.io', 'optimism.io', 'polygon.technology',
@@ -45,39 +45,58 @@ export function HeroSection() {
           ];
           const domain = domains[i % domains.length];
           
-          // Generate static 3D rotation angles based on index
-          const rotX = (i % 5) * 25 - 50; 
-          const rotY = (i % 7) * 25 - 75; 
-
+          const startX = (i % 5) * 45;
+          const startY = (i % 7) * 35;
+          
           return (
             <motion.div
              key={`coin-${i}`}
-             className="absolute"
+             className="absolute w-12 h-12 sm:w-16 sm:h-16"
              initial={{
                y: -150,
-               rotate: 0,
-               rotateX: rotX,
-               rotateY: rotY,
+               rotateX: startX,
+               rotateY: startY,
+               rotateZ: 0,
                scale: 0.8 + (i % 3) * 0.2
              }}
              animate={{
                y: 1200,
-               rotate: 360,
-               rotateX: rotX,
-               rotateY: rotY
+               rotateX: startX + (i % 2 === 0 ? 360 : -360),
+               rotateY: startY + (i % 3 === 0 ? 360 : -360),
+               rotateZ: 360
              }}
              transition={{
-               duration: 9 + (i % 5) * 2,
+               duration: 10 + (i % 5) * 3,
                repeat: Infinity,
                ease: "linear",
                delay: (i % 7) * 0.8
              }}
              style={{
-               left: `${(i * 4.1) % 100}%`,
+               left: `${(i * 5.1) % 100}%`,
                transformStyle: "preserve-3d"
              }}
             >
-             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-[3px] border-black bg-white flex items-center justify-center shadow-[2px_2px_0_0_#000] p-[6px]">
+             {/* 3D Coin Layers to create thickness */}
+             {[0, 1, 2, 3, 4].map(layer => (
+               <div 
+                 key={layer}
+                 className="absolute inset-0 rounded-full border-[3px] border-black bg-white flex items-center justify-center p-[6px]"
+                 style={{ 
+                   transform: `translateZ(${layer * 2 - 4}px)`,
+                   backfaceVisibility: "hidden"
+                 }}
+               >
+                 <img src={`https://img.logo.dev/${domain}?token=pk_BShsdiwDTuyRVVBW5GadOg`} alt="coin" className="w-full h-full object-contain rounded-full" />
+               </div>
+             ))}
+             {/* Back face (rotated 180deg) */}
+             <div 
+               className="absolute inset-0 rounded-full border-[3px] border-black bg-white flex items-center justify-center p-[6px]"
+               style={{ 
+                 transform: `translateZ(-4px) rotateY(180deg)`,
+                 backfaceVisibility: "hidden"
+               }}
+             >
                <img src={`https://img.logo.dev/${domain}?token=pk_BShsdiwDTuyRVVBW5GadOg`} alt="coin" className="w-full h-full object-contain rounded-full" />
              </div>
             </motion.div>
