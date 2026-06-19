@@ -1,8 +1,9 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Plus, Minus } from 'lucide-react'
-import { BlockReveal } from '@/components/animations/BlockReveal'
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
+import { BlockReveal } from '@/components/animations/BlockReveal';
 
 const faqs = [
   {
@@ -15,59 +16,105 @@ const faqs = [
   },
   {
     question: 'Which wallets and chains are supported?',
-    answer: 'Currently we support EVM wallets (MetaMask, Rainbow, Coinbase Wallet) paying on Base, as well as Solana wallets (Phantom, Solflare).'
+    answer: 'Currently we support EVM wallets (MetaMask, Rainbow, Coinbase Wallet) paying on Base, as well as Solana wallets (Phantom, Solflare) and Sui wallets on their respective networks.'
   },
   {
     question: 'Are there any platform fees?',
-    answer: 'No. justpay.wtf charges $0.00 in platform fees. The payer is only responsible for the standard network gas fees and any liquidity provider fees (slippage) incurred during cross-chain swaps.'
+    answer: 'No. justpay.wtf charges 0% in platform fees. The payer is only responsible for the standard network gas fees and any liquidity provider fees (slippage) incurred during cross-chain swaps.'
   }
-]
+];
 
 export function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0)
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const handleToggle = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
   return (
-    <section id="faq" className="w-full bg-[var(--color-neutral-primary-soft)] border-b-2 border-[var(--color-border-default)] py-[96px]">
-      <div className="max-w-[1200px] mx-auto px-[24px] flex flex-col gap-12">
-        <div className="flex flex-col gap-4 text-left items-start">
-          <h2 className="text-[16px] font-bold text-[var(--color-section-brand)] uppercase tracking-widest border-2 border-[var(--color-border-default)] px-4 py-1 bg-[var(--color-neutral-primary-soft)] inline-block w-max">Information</h2>
-          <BlockReveal blockColor="var(--color-section-pink)">
-            <h2 className="text-[48px] md:text-[64px] font-black text-black leading-[0.95] tracking-tighter uppercase mb-4">
+    <section id="faq" className="w-full bg-[var(--color-neutral-primary-soft)] border-b-2 border-black py-[96px]">
+      <div className="max-w-[800px] mx-auto px-[24px] flex flex-col gap-12 text-black">
+        
+        <div className="flex flex-col gap-4 text-center items-center">
+          <h2 className="text-[16px] font-bold text-[var(--color-section-brand)] uppercase tracking-widest border-2 border-black px-4 py-1 bg-white inline-block w-max shadow-[2px_2px_0_0_#000]">
+            Information
+          </h2>
+          <BlockReveal blockColor="var(--color-section-yellow)">
+            <h2 className="text-[48px] md:text-[64px] font-black text-black leading-[0.95] tracking-tighter uppercase mb-4 text-center">
               Got Questions?
             </h2>
           </BlockReveal>
-          <p className="text-[20px] font-bold text-black border-b-4 border-black pb-2 inline-block w-max max-w-full">
+          <p className="text-[20px] font-bold text-black pb-2 inline-block max-w-full text-center">
             Everything you need to know about how we route your payments.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {faqs.map((faq, idx) => {
-            const isOpen = openIndex === idx
+        <div className="flex flex-col w-full relative z-10 perspective-1000">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
+
             return (
-              <div 
-                key={idx} 
-                className={`bg-[var(--color-neutral-secondary-soft)] border-4 border-black transition-all duration-300 ${isOpen ? 'shadow-[var(--shadow-md)] bg-[var(--color-section-yellow)]' : 'hover:bg-[var(--color-section-cyan)] hover:shadow-[var(--shadow-xs)]'}`}
+              <motion.div
+                key={index}
+                initial={false}
+                animate={{
+                  y: isOpen ? 0 : 0,
+                  marginBottom: isOpen ? "16px" : "-4px",
+                  marginTop: isOpen ? "16px" : "0px",
+                  backgroundColor: isOpen ? 'var(--color-section-yellow)' : 'var(--color-neutral-secondary-soft)',
+                  zIndex: isOpen ? 20 : 10
+                }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className={`relative border-4 border-black overflow-hidden hover:bg-[var(--color-section-cyan)] hover:text-black transition-colors ${
+                  isOpen ? 'shadow-[8px_8px_0_0_#000]' : ''
+                }`}
               >
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full flex items-center justify-between p-6 text-left cursor-pointer"
-                >
-                  <span className="text-[24px] font-black text-black uppercase pr-4">{faq.question}</span>
-                  <div className="bg-white border-2 border-black w-8 h-8 flex items-center justify-center flex-shrink-0 shadow-[var(--shadow-xs)]">
-                    {isOpen ? <Minus className="w-5 h-5 text-black" strokeWidth={3} /> : <Plus className="w-5 h-5 text-black" strokeWidth={3} />}
-                  </div>
-                </button>
                 <div 
-                  className={`px-6 text-[18px] font-bold text-black transition-all duration-300 ease-in-out ${isOpen ? 'pb-6 opacity-100 max-h-[500px]' : 'max-h-0 opacity-0 overflow-hidden'}`}
+                  onClick={() => handleToggle(index)}
+                  className="flex items-center justify-between p-5 md:p-6 cursor-pointer select-none"
                 >
-                  <p className="border-t-2 border-black pt-4">{faq.answer}</p>
+                  <span className="text-[20px] md:text-[24px] font-black uppercase pr-4">
+                    {faq.question}
+                  </span>
+                  <motion.div
+                    animate={{
+                      rotate: isOpen ? 180 : 0,
+                      backgroundColor: isOpen ? '#000' : '#fff',
+                      color: isOpen ? '#fff' : '#000'
+                    }}
+                    transition={{ duration: 0.3 }}
+                    className="border-2 border-black w-8 h-8 flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0_0_#000]"
+                  >
+                    <ChevronDown size={20} className="w-5 h-5" strokeWidth={3} />
+                  </motion.div>
                 </div>
-              </div>
-            )
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 900,
+                        damping: 80,
+                        mass: 10,
+                      }}
+                    >
+                      <div className="px-5 md:px-6 pb-6 pt-0 text-[18px] font-bold">
+                        <div className="border-t-2 border-black border-dashed pt-4 mt-2">
+                          {faq.answer}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
           })}
         </div>
       </div>
     </section>
-  )
+  );
 }
