@@ -36,7 +36,7 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-[linear-gradient(transparent_19px,var(--color-border-default)_20px),linear-gradient(90deg,transparent_19px,var(--color-border-default)_20px)] bg-[length:40px_40px] opacity-[0.15] pointer-events-none" />
 
       {/* Full Width Falling Coins Layer */}
-      <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden opacity-[0.2]">
+      <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden opacity-[0.6]" style={{ perspective: "1000px" }}>
         {[...Array(24)].map((_, i) => {
           const domains = [
             'bitcoin.org', 'ethereum.org', 'solana.com', 'sui.io', 
@@ -44,6 +44,11 @@ export function HeroSection() {
             'monad.xyz', 'binance.com'
           ];
           const domain = domains[i % domains.length];
+          
+          // Generate static 3D rotation angles based on index
+          const rotX = (i % 5) * 25 - 50; 
+          const rotY = (i % 7) * 25 - 75; 
+
           return (
             <motion.div
              key={`coin-${i}`}
@@ -51,11 +56,15 @@ export function HeroSection() {
              initial={{
                y: -150,
                rotate: 0,
+               rotateX: rotX,
+               rotateY: rotY,
                scale: 0.8 + (i % 3) * 0.2
              }}
              animate={{
                y: 1200,
-               rotate: 360
+               rotate: 360,
+               rotateX: rotX,
+               rotateY: rotY
              }}
              transition={{
                duration: 9 + (i % 5) * 2,
@@ -64,7 +73,8 @@ export function HeroSection() {
                delay: (i % 7) * 0.8
              }}
              style={{
-               left: `${(i * 4.1) % 100}%`
+               left: `${(i * 4.1) % 100}%`,
+               transformStyle: "preserve-3d"
              }}
             >
              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-[3px] border-black bg-white flex items-center justify-center shadow-[2px_2px_0_0_#000] p-[6px]">
