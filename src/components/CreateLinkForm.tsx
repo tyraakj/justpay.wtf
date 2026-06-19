@@ -9,7 +9,7 @@ import { useCurrentAccount } from '@mysten/dapp-kit';
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { WalletConnectButton } from './shared/WalletConnectButton';
-import { ChainTokenSelector, SupportedChain } from './shared/ChainTokenSelector';
+import { ChainTokenSelector } from './shared/ChainTokenSelector';
 import { ExpiryPicker, ExpiryValue, expiryValueToTimestamp } from './ExpiryPicker';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,9 +23,9 @@ const TOKEN_DOMAINS: Record<string, string> = {
 
 export function CreateLinkForm() {
   const [address, setAddress] = useState('');
-  const [chain, setChain] = useState<SupportedChain>('base');
+  const [chain, setChain] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
-  const [tokenSymbol, setTokenSymbol] = useState('USDC');
+  const [tokenSymbol, setTokenSymbol] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [memo, setMemo] = useState('');
   const [expiry, setExpiry] = useState<ExpiryValue>({ type: 'never' });
@@ -58,9 +58,9 @@ export function CreateLinkForm() {
 
       const result = await createLinkMutation({
         receiverAddress: finalAddress,
-        destinationChain: chain,
-        destinationTokenSymbol: tokenSymbol,
-        destinationTokenAddress: chain === 'sui' || chain === 'suiTestnet' ? '0x2::sui::SUI' : undefined,
+        destinationChain: chain ?? undefined,
+        destinationTokenSymbol: tokenSymbol ?? undefined,
+        destinationTokenAddress: undefined,
         amount: amount ? amount : undefined,
         receiverEmail: email || undefined,
         note: memo || undefined,
@@ -158,9 +158,9 @@ export function CreateLinkForm() {
                 <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-cyan)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2">Network & Asset</label>
                 <div className="bg-white border-[3px] border-black p-3 pt-4 hover:bg-slate-50 transition-colors">
                   <ChainTokenSelector
-                    selectedChain={chain}
+                    selectedChainId={chain}
                     selectedToken={tokenSymbol}
-                    onChainSelect={setChain as any}
+                    onChainSelect={setChain}
                     onTokenSelect={setTokenSymbol}
                   />
                 </div>
@@ -178,8 +178,10 @@ export function CreateLinkForm() {
                     className="w-full bg-transparent px-2 py-3 text-[32px] md:text-[40px] font-black text-black placeholder:text-black/20 outline-none"
                   />
                   <div className="flex items-center gap-2 pr-4 bg-white px-3 py-2 border-2 border-black">
-                    <img src={`https://img.logo.dev/${TOKEN_DOMAINS[tokenSymbol]}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={tokenSymbol} className="w-6 h-6 object-contain bg-transparent" />
-                    <span className="text-xl font-black">{tokenSymbol}</span>
+                    {tokenSymbol && TOKEN_DOMAINS[tokenSymbol] && (
+                      <img src={`https://img.logo.dev/${TOKEN_DOMAINS[tokenSymbol]}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={tokenSymbol} className="w-6 h-6 object-contain bg-transparent" />
+                    )}
+                    <span className="text-xl font-black">{tokenSymbol ?? 'ANY'}</span>
                   </div>
                 </div>
               </div>

@@ -86,7 +86,7 @@ export function SmartButton({
           fromChain: getLifiChainId(payerChain),
           toChain: getLifiChainId(chain),
           fromToken: inputTokenAddress || (isSolana ? '11111111111111111111111111111111' : isSui ? '0x2::sui::SUI' : '0x0000000000000000000000000000000000000000'),
-          toToken: tokenAddress || (chain === 'solana' || chain === 'solanaDevnet' ? '11111111111111111111111111111111' : chain === 'sui' || chain === 'suiTestnet' ? '0x2::sui::SUI' : '0x0000000000000000000000000000000000000000'),
+          toToken: tokenAddress || (chain === 'sol' ? '11111111111111111111111111111111' : chain === 'sui' ? '0x2::sui::SUI' : '0x0000000000000000000000000000000000000000'),
           fromAddress: payerAddress,
           toAddress: recipientAddress,
           destinationAmountBase: amountBase

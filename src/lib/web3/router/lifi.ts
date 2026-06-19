@@ -21,7 +21,11 @@ export const getLifiChainId = (chainName: string): number | string => {
     case 'basesepolia': return 84532;
     case 'solanadevnet': return 'sol';
     case 'suitestnet': return 'sui';
-    default: throw new Error(`Unsupported chain: ${chainName}`);
+    default: {
+      const n = Number(chainName);
+      if (!isNaN(n)) return n; // Already a numeric LI.FI chain ID
+      return chainName; // Pass through string IDs like 'sol', 'sui'
+    }
   }
 };
 

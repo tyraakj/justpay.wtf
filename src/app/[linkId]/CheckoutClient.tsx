@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { WalletConnectButton } from '@/components/shared/WalletConnectButton'
 import { SmartButton } from '@/components/SmartButton'
 import { ConnectButton } from '@mysten/dapp-kit'
-import { getChainConfig } from '@/lib/config/network'
+import { NON_EVM_CHAIN_IDS } from '@/lib/config/network'
 
 interface CheckoutClientProps {
   linkId: string
@@ -15,38 +15,22 @@ interface CheckoutClientProps {
 }
 
 export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, amount }: CheckoutClientProps) {
-  // If destination is a testnet, default the payer to the same testnet family
-  const isDestTestnet = getChainConfig(chain)?.isTestnet;
-  const chainFamily = getChainConfig(chain)?.family;
+  // If destination is non-EVM, default payer to ethereum
+  const isNonEvm = NON_EVM_CHAIN_IDS.includes(chain as any)
   
   const [payerChain, setPayerChain] = useState<string>(
-    chainFamily === 'ethereum' 
-      ? chain 
-      : (isDestTestnet ? 'sepolia' : 'ethereum')
+    isNonEvm ? 'ethereum' : 'ethereum'
   )
   const [isSuccess, setIsSuccess] = useState(false)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [error, setError] = useState<{ type: 'expired' | 'failed_slippage' | 'failed_reverted' | 'unknown', message: string } | null>(null)
 
   const getDestinationTokenAddress = () => {
-    try {
-      const config = getChainConfig(chain);
-      if (tokenSymbol === 'ETH' || tokenSymbol === 'SOL' || tokenSymbol === 'SUI') return null; // Native
-      return config.tokens[tokenSymbol] || null;
-    } catch {
-      return null;
-    }
+    return null; // widget handles token addresses at checkout time
   }
 
   const getInputTokenAddress = () => {
-    try {
-      // Defaulting to USDC for EVM/Solana or SUI for Sui
-      const config = getChainConfig(payerChain);
-      if (payerChain === 'sui' || payerChain === 'suiTestnet') return null; // Native SUI
-      return config.tokens['USDC'] || null;
-    } catch {
-      return null;
-    }
+    return null; // widget handles token addresses at checkout time
   }
 
   if (isSuccess) {
@@ -98,27 +82,27 @@ export function CheckoutClient({ linkId, chain, recipientAddress, tokenSymbol, a
         <label className="text-sm font-medium text-zinc-400">Pay with Wallet</label>
         <div className="flex gap-2">
           <button 
-            onClick={() => setPayerChain(isDestTestnet ? 'sepolia' : 'ethereum')}
-            className={payerChain === 'ethereum' || payerChain === 'sepolia' || payerChain === 'base' || payerChain === 'baseSepolia' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
+            onClick={() => setPayerChain('ethereum')}
+            className={payerChain === 'ethereum' || payerChain === 'base' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
           >
             EVM (Base/Eth)
           </button>
           <button 
-            onClick={() => setPayerChain(isDestTestnet ? 'solanaDevnet' : 'solana')}
-            className={payerChain === 'solana' || payerChain === 'solanaDevnet' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
+            onClick={() => setPayerChain('solana')}
+            className={payerChain === 'solana' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
           >
             Solana
           </button>
           <button 
-            onClick={() => setPayerChain(isDestTestnet ? 'suiTestnet' : 'sui')}
-            className={payerChain === 'sui' || payerChain === 'suiTestnet' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
+            onClick={() => setPayerChain('sui')}
+            className={payerChain === 'sui' ? 'btn-secondary-lg-active' : 'btn-secondary-lg'}
           >
             Sui
           </button>
         </div>
       </div>
 
-      {payerChain === 'sui' || payerChain === 'suiTestnet' ? (
+      {payerChain === 'sui' ? (
         <div className="flex justify-center w-full">
           <ConnectButton connectText="Connect Sui Wallet" />
         </div>
