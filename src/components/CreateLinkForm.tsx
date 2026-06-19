@@ -33,20 +33,25 @@ export function CreateLinkForm() {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const router = useRouter();
 
-  const { address: evmAddress } = useAccount();
+  const { address: evmAddress, chainId: evmChainId } = useAccount();
   const { publicKey } = useWallet();
   const suiAccount = useCurrentAccount();
   const connectedAddress = evmAddress || publicKey?.toBase58() || suiAccount?.address;
   const createLinkMutation = useMutation(api.links.createLink);
 
   useEffect(() => {
-    if (connectedAddress) {
-      if (!address) {
-        setAddress(connectedAddress);
-      }
-
+    if (evmAddress && evmChainId) {
+      // Auto-fill address AND the specific EVM chain the wallet is currently on
+      if (!address) setAddress(evmAddress);
+      if (!chain) setChain(evmChainId.toString());
+    } else if (publicKey) {
+      if (!address) setAddress(publicKey.toBase58());
+      if (!chain) setChain('sol');
+    } else if (suiAccount?.address) {
+      if (!address) setAddress(suiAccount.address);
+      if (!chain) setChain('sui');
     }
-  }, [connectedAddress]);
+  }, [evmAddress, evmChainId, publicKey, suiAccount?.address]);
 
   const handleCreate = async () => {
     const finalAddress = address || connectedAddress;
