@@ -85,16 +85,6 @@ export function buildCheckoutWidgetConfig(
 
     integrator: "justpay",
 
-    // Force the widget to manage its own wallet connections independently of
-    // the app's WagmiProvider (which only covers Base + Ethereum for the link
-    // creation form). Without this, EthereumProvider() detects the app's
-    // WagmiContext and reuses it, limiting the payer to the app's 4 chains.
-    // With forceInternalWalletManagement the widget creates its own wagmi config
-    // that auto-syncs with all LI.FI-registered chains via useSyncWagmiConfig.
-    walletConfig: {
-      forceInternalWalletManagement: true,
-    },
-
     // Revenue model: LI.FI integrator fee split.
     // Set feeConfig.fee: 0.005 and add a recipient to collect 0.5% of every
     // swap/bridge automatically. LI.FI deducts and routes it during execution.

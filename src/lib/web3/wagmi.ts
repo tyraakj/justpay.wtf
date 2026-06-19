@@ -1,14 +1,11 @@
-import { http, createConfig } from 'wagmi'
-import { base, mainnet, sepolia, baseSepolia } from 'wagmi/chains'
+import { createDefaultWagmiConfig } from '@lifi/widget-provider-ethereum'
 
-const endpointBase = typeof window !== 'undefined' ? '/api/rpc/base' : 'https://mainnet.base.org';
-
-export const config = createConfig({
-  chains: [mainnet, base, sepolia, baseSepolia],
-  transports: {
-    [mainnet.id]: http(),
-    [base.id]: http(endpointBase),
-    [sepolia.id]: http(),
-    [baseSepolia.id]: http(),
-  },
+// LI.FI's createDefaultWagmiConfig starts with mainnet only.
+// useSyncWagmiConfig (called in Web3Provider) dynamically adds all LI.FI-supported
+// chains at runtime — the same pattern Jumper Exchange uses.
+// No WalletConnect projectId configured yet; injected wallets (MetaMask, Rabby,
+// browser extension wallets) are discovered automatically via EIP-6963.
+export const { config, connectors } = createDefaultWagmiConfig({
+  wagmiConfig: { ssr: true },
+  lazy: true, // only load connector SDKs when needed — keeps initial bundle small
 })
