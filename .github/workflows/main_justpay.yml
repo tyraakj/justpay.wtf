@@ -85,6 +85,9 @@ jobs:
           name: nextjs-app
           path: ./app
 
+      - name: Zip deployment package (preserves hidden dirs like .next)
+        run: cd ./app && zip -r ../release.zip .
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -98,4 +101,4 @@ jobs:
         with:
           app-name: "justpay"
           slot-name: "Production"
-          package: ./app
+          package: ./release.zip
