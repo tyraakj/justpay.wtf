@@ -96,7 +96,7 @@ export function CreateLinkForm() {
   return (
     <div className="flex flex-col gap-4 w-full">
       {/* Main Widget Box */}
-      <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_#000] flex flex-col gap-4 relative z-10 transition-transform hover:-translate-y-1 hover:shadow-[12px_12px_0_0_#000]">
+      <div className="flex flex-col gap-4 relative z-10 transition-transform">
         
         {/* Destination Address Input (Top Priority) */}
         <div className="flex flex-col gap-2 relative">

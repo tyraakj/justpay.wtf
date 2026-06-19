@@ -89,7 +89,7 @@ export function HeroSection() {
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.6 }}
-          className="w-full max-w-[600px] relative z-20 bg-[var(--color-neutral-secondary-soft)] border-[4px] border-black p-4 md:p-6 shadow-[12px_12px_0_0_rgba(0,0,0,1)] mb-12"
+          className="w-full max-w-[600px] relative z-20 bg-white border-[4px] border-black p-4 md:p-6 shadow-[12px_12px_0_0_rgba(0,0,0,1)] mb-12"
         >
           <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-4">
             <h2 className="text-2xl font-black uppercase tracking-tight text-black flex items-center gap-2">
