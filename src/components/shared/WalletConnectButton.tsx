@@ -11,7 +11,7 @@ import { ConnectModal, useCurrentAccount, useDisconnectWallet } from '@mysten/da
 import { BrutalistButton } from '../brutalism/Button';
 import { createPortal } from 'react-dom';
 
-export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar' | 'form' }) {
+export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar' | 'form' | 'input' }) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isSuiModalOpen, setIsSuiModalOpen] = useState(false);
@@ -38,6 +38,13 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
   const connected = solConnected || evmConnected || suiConnected;
 
   if (!mounted) {
+    if (variant === 'input') {
+      return (
+        <button disabled className="bg-[var(--color-neutral-secondary-soft)] border-2 border-black p-2 opacity-50 cursor-not-allowed hidden md:block">
+          <Wallet className="w-5 h-5 text-black" />
+        </button>
+      )
+    }
     return (
       <BrutalistButton variant="tertiary" className="opacity-50 cursor-not-allowed">
         <Wallet className="w-5 h-5 mr-2" strokeWidth={3} />
@@ -49,6 +56,23 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
   if (connected) {
     const address = solConnected ? publicKey?.toBase58() : evmConnected ? evmAddress : suiAccount?.address;
     const shortAddress = address ? `${address.slice(0, 4)}...${address.slice(-4)}` : '';
+    
+    if (variant === 'input') {
+      return (
+        <button
+          onClick={() => {
+            if (solConnected) solDisconnect();
+            if (evmConnected) evmDisconnect();
+            if (suiConnected) suiDisconnect();
+          }}
+          className="bg-[var(--color-section-pink)] border-2 border-black p-2 hover:bg-[var(--color-section-yellow)] transition-colors group hidden md:flex items-center"
+          title="Disconnect wallet"
+        >
+          <X className="w-5 h-5 text-black" strokeWidth={3} />
+        </button>
+      )
+    }
+
     return (
       <BrutalistButton
         variant="brand"
@@ -68,13 +92,23 @@ export function WalletConnectButton({ variant = 'navbar' }: { variant?: 'navbar'
 
   return (
     <>
-      <BrutalistButton
-        variant="tertiary"
-        onClick={() => setIsOpen(true)}
-      >
-        <Wallet className="w-5 h-5 mr-2" strokeWidth={3} />
-        <span className="uppercase tracking-wider font-black">Connect Wallet</span>
-      </BrutalistButton>
+      {variant === 'input' ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="bg-[var(--color-section-cyan)] border-2 border-black p-2 hover:bg-[var(--color-section-green)] transition-colors group hidden md:block"
+          title="Connect wallet"
+        >
+          <Wallet className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />
+        </button>
+      ) : (
+        <BrutalistButton
+          variant="tertiary"
+          onClick={() => setIsOpen(true)}
+        >
+          <Wallet className="w-5 h-5 mr-2" strokeWidth={3} />
+          <span className="uppercase tracking-wider font-black">Connect Wallet</span>
+        </BrutalistButton>
+      )}
 
       <ConnectModal
         trigger={<span className="hidden" />}

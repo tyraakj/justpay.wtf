@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowRight, Wallet } from 'lucide-react';
+import { ArrowRight, Wallet, ClipboardPaste } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { WalletConnectButton } from './shared/WalletConnectButton';
 import { ChainTokenSelector, SupportedChain } from './shared/ChainTokenSelector';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -107,47 +108,35 @@ export function CreateLinkForm() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={connectedAddress ? `Connected: ${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}` : (chain === 'base' ? "0x... (EVM)" : chain === 'sui' ? "0x... (64 hex chars)" : "Solana address")}
-              className="w-full bg-white border-[3px] border-black px-4 py-4 pr-12 text-[16px] font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-brand-softer)] transition-colors"
+              className="w-full bg-white border-[3px] border-black px-4 py-4 pr-32 text-[16px] font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-brand-softer)] transition-colors"
             />
-            {connectedAddress && !address && (
+            <div className="absolute right-3 flex items-center gap-2">
               <button
-                onClick={() => setAddress(connectedAddress)}
-                className="absolute right-3 bg-[var(--color-section-cyan)] border-2 border-black p-2 hover:bg-[var(--color-section-green)] transition-colors group"
-                title="Autofill from connected wallet"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    if (text) setAddress(text.trim());
+                  } catch (err) {
+                    console.error('Failed to read clipboard', err);
+                  }
+                }}
+                className="bg-[var(--color-section-yellow)] border-2 border-black p-2 hover:bg-[var(--color-section-pink)] transition-colors group hidden md:block"
+                title="Paste from clipboard"
               >
-                <Wallet className="w-4 h-4 text-black group-hover:scale-110 transition-transform" />
+                <ClipboardPaste className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />
               </button>
-            )}
-          </div>
-        </div>
-
-        {/* Token & Network Selection */}
-        <div className="flex flex-col gap-2 mt-2">
-          <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-cyan)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2">Network & Asset (Optional)</label>
-          <div className="bg-white border-[3px] border-black p-3 pt-4 hover:bg-slate-50 transition-colors">
-            <ChainTokenSelector
-              selectedChain={chain}
-              selectedToken={tokenSymbol}
-              onChainSelect={setChain as any}
-              onTokenSelect={setTokenSymbol}
-            />
-          </div>
-        </div>
-
-        {/* Amount Input */}
-        <div className="flex flex-col gap-2 relative group mt-2">
-          <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-pink)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2 transition-transform group-focus-within:-translate-y-1">Amount to Request (Optional)</label>
-          <div className="bg-white border-[3px] border-black flex items-center p-2 focus-within:bg-[var(--color-brand-softer)] transition-colors">
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.0"
-              className="w-full bg-transparent px-2 py-3 text-[32px] md:text-[40px] font-black text-black placeholder:text-black/20 outline-none"
-            />
-            <div className="flex items-center gap-2 pr-4 bg-white px-3 py-2 border-2 border-black">
-              <img src={`https://img.logo.dev/${TOKEN_DOMAINS[tokenSymbol]}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={tokenSymbol} className="w-6 h-6 object-contain bg-transparent" />
-              <span className="text-xl font-black">{tokenSymbol}</span>
+              
+              {connectedAddress && !address ? (
+                <button
+                  onClick={() => setAddress(connectedAddress)}
+                  className="bg-[var(--color-section-cyan)] border-2 border-black p-2 hover:bg-[var(--color-section-green)] transition-colors group hidden md:block"
+                  title="Autofill from connected wallet"
+                >
+                  <Wallet className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />
+                </button>
+              ) : (
+                <WalletConnectButton variant="input" />
+              )}
             </div>
           </div>
         </div>
@@ -169,7 +158,38 @@ export function CreateLinkForm() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-col gap-4 border-[3px] border-black border-dashed p-3 mt-2"
             >
-              <div className="flex flex-col gap-1">
+              {/* Token & Network Selection */}
+              <div className="flex flex-col gap-2 mt-2">
+                <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-cyan)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2">Network & Asset</label>
+                <div className="bg-white border-[3px] border-black p-3 pt-4 hover:bg-slate-50 transition-colors">
+                  <ChainTokenSelector
+                    selectedChain={chain}
+                    selectedToken={tokenSymbol}
+                    onChainSelect={setChain as any}
+                    onTokenSelect={setTokenSymbol}
+                  />
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div className="flex flex-col gap-2 relative group mt-2">
+                <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-pink)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2 transition-transform group-focus-within:-translate-y-1">Amount to Request</label>
+                <div className="bg-white border-[3px] border-black flex items-center p-2 focus-within:bg-[var(--color-brand-softer)] transition-colors">
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.0"
+                    className="w-full bg-transparent px-2 py-3 text-[32px] md:text-[40px] font-black text-black placeholder:text-black/20 outline-none"
+                  />
+                  <div className="flex items-center gap-2 pr-4 bg-white px-3 py-2 border-2 border-black">
+                    <img src={`https://img.logo.dev/${TOKEN_DOMAINS[tokenSymbol]}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={tokenSymbol} className="w-6 h-6 object-contain bg-transparent" />
+                    <span className="text-xl font-black">{tokenSymbol}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1 mt-2">
                 <label className="text-[12px] font-black uppercase tracking-wider text-black">Memo (Optional)</label>
                 <input
                   type="text"
