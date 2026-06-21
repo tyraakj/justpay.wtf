@@ -53,11 +53,11 @@ export default async function PaymentPage({ params }: Props) {
   const isUnavailable = isExpired || link.status === 'cancelled'
 
   return (
-    <main className="min-h-[80vh] flex flex-col items-center justify-start pt-8 pb-16 px-4 sm:px-6 relative overflow-hidden bg-[var(--color-neutral-primary-soft)]">
+    <main className="min-h-[80vh] flex flex-col items-center justify-start pt-28 pb-16 px-4 sm:px-6 relative overflow-hidden bg-[var(--color-neutral-primary-soft)]">
       {/* Grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(transparent_19px,var(--color-border-default)_20px),linear-gradient(90deg,transparent_19px,var(--color-border-default)_20px)] bg-[length:40px_40px] opacity-[0.06] pointer-events-none" />
 
-      <div className="w-full max-w-md z-10 flex flex-col gap-5">
+      <div className="w-full max-w-lg z-10 flex flex-col gap-5">
         {/* Brand strip */}
         <div className="flex items-center justify-between border-b-2 border-dashed border-black/20 pb-3">
           <span className="text-[11px] font-black uppercase tracking-widest text-black/40">Powered by</span>
@@ -67,6 +67,7 @@ export default async function PaymentPage({ params }: Props) {
         <PaymentCard
           amount={Number(link.amount) || 0}
           tokenSymbol={link.destinationTokenSymbol ?? 'any token'}
+          destinationChain={link.destinationChain}
           recipientAddress={link.receiverAddress}
           memo={link.note}
         />

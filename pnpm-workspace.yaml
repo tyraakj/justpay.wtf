@@ -2,7 +2,7 @@ ignoredBuiltDependencies:
   - esbuild
 
 onlyBuiltDependencies:
-  - '@stellar/stellar-sdk'
+  - "@stellar/stellar-sdk"
   - bigint-buffer
   - blake-hash
   - bufferutil
@@ -14,6 +14,7 @@ onlyBuiltDependencies:
   - utf-8-validate
 
 overrides:
+  "@lifi/sdk": "4.0.0"
   react: $react
   react-dom: $react-dom
   ws: ^8.21.0

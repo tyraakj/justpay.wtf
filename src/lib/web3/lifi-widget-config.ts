@@ -1,7 +1,10 @@
 import type { WidgetConfig } from "@lifi/widget";
+import { ChainType } from "@lifi/sdk";
 import {
   parseChainIdForWidget,
   getNativeTokenAddress,
+  isSolana,
+  isSui,
 } from "@/lib/config/network";
 
 export interface CheckoutWidgetOptions {
@@ -33,35 +36,56 @@ export function buildCheckoutWidgetConfig(
   const toChainId = hasChainPreference
     ? parseChainIdForWidget(opts.destinationChain!)
     : undefined;
+
+  // Always resolve a toToken when a chain is specified — default to native token.
+  // Without toToken the widget clears the "to" side when "from" changes.
   const toTokenAddr = hasTokenPreference
     ? (opts.destinationTokenAddress ??
       getNativeTokenAddress(opts.destinationChain ?? ""))
-    : undefined;
+    : hasChainPreference
+      ? getNativeTokenAddress(opts.destinationChain!)
+      : undefined;
+
+  // Determine chainType for the receiver address
+  const getChainType = (): ChainType => {
+    if (opts.destinationChain && isSolana(opts.destinationChain))
+      return ChainType.SVM;
+    if (opts.destinationChain && isSui(opts.destinationChain))
+      return ChainType.MVM;
+    // Default to EVM — works for all numeric chain IDs
+    return ChainType.EVM;
+  };
 
   const config: WidgetConfig = {
     toAddress: {
+      name: "Payment",
       address: opts.receiverAddress,
+      chainType: getChainType(),
     },
 
     // Only set toChain/toToken if the receiver specified them
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(toChainId !== undefined ? { toChain: toChainId as any } : {}),
     ...(toTokenAddr !== undefined ? { toToken: toTokenAddr } : {}),
 
-    // Pre-fill amount for fixed links; leave undefined for open links
-    ...(opts.amount && Number(opts.amount) > 0
-      ? { toAmount: opts.amount }
-      : {}),
+    // Amount is NOT set here. The sender picks how much to send from their
+    // source token; the widget shows what the receiver will get (including
+    // USD equivalents). The PaymentCard displays the required amount as
+    // reference. Cross-token payments can't enforce exact output via config
+    // alone — slippage and rate differences make it impractical.
 
-    // Lock destination UI — receiver's preferences are not editable
+    // Lock destination token; lock toAddress always
     disabledUI: {
-      ...(hasTokenPreference ? { toToken: true } : {}),
+      ...(toTokenAddr ? { toToken: true } : {}),
+      toAddress: true,
     },
 
-    // Hide exchange-specific elements for a clean payment flow
+    // Hide the toAddress input (already shown in PaymentCard)
     hiddenUI: {
-      toAddress: true, // Already shown in PaymentCard above
-      reverseTokensButton: true, // Not relevant for payments
+      toAddress: true,
       poweredBy: true,
+      appearance: true,
+      language: true,
     },
 
     // Restrict destination chain if receiver specified one (EVM numeric chains only)
@@ -69,7 +93,19 @@ export function buildCheckoutWidgetConfig(
       ? { chains: { to: { allow: [toChainId] } } }
       : {}),
 
-    // Override "Exchange" header to "Payment"
+    // Deny the destination token as a "from" token to prevent same-token-same-chain
+    // selection which LiFi can't route (it's a direct transfer, not a swap).
+    ...(toTokenAddr && toChainId !== undefined
+      ? {
+          tokens: {
+            from: {
+              deny: [{ address: toTokenAddr, chainId: toChainId as number }],
+            },
+          },
+        }
+      : {}),
+
+    // Override labels for payment context
     languageResources: {
       en: {
         header: {
@@ -78,51 +114,20 @@ export function buildCheckoutWidgetConfig(
           to: "Receive on",
         },
         button: {
-          exchange: "Pay Now",
+          exchange: "Review Payment",
+          startSwapping: "Pay Now",
+          startBridging: "Pay Now",
+          swapReview: "Review Payment",
+          bridgeReview: "Review Payment",
         },
       },
     },
 
-    // UI presentation — brutalist light theme to match the app
     variant: "compact",
     appearance: "light",
-    theme: {
-      colorSchemes: {
-        light: {
-          palette: {
-            primary: { main: "#000000" },
-            secondary: { main: "#3a3a3a" },
-            background: { default: "#ffffff", paper: "#f5f0e6" },
-            text: { primary: "#000000", secondary: "#3a3a3a" },
-          },
-        },
-      },
-      shape: { borderRadius: 0 } as any,
-      typography: { fontFamily: '"Darker Grotesque", sans-serif' },
-      container: {
-        border: "3px solid #000000",
-        borderRadius: "0px",
-        background: "#ffffff",
-      },
-    },
-
     integrator: "justpay",
-
-    // SDK config — provide CORS-friendly RPC URLs for major chains.
-    // LiFi's default RPCs (arc-rpc.transferto.xyz, etc.) reject localhost CORS.
-    sdkConfig: {
-      rpcUrls: {
-        1: ["https://eth.llamarpc.com"],         // Ethereum
-        56: ["https://bsc-dataseed1.defibit.io", "https://bsc-rpc.publicnode.com"], // BSC
-        137: ["https://polygon-rpc.com"],        // Polygon
-        42161: ["https://arb1.arbitrum.io/rpc"], // Arbitrum
-        10: ["https://mainnet.optimism.io"],     // Optimism
-        8453: ["https://mainnet.base.org"],      // Base
-        43114: ["https://api.avax.network/ext/bc/C/rpc"], // Avalanche
-        250: ["https://rpc.ftm.tools"],          // Fantom
-        100: ["https://rpc.gnosischain.com"],    // Gnosis
-      },
-    },
+    keyPrefix: "justpay",
+    apiKey: process.env.NEXT_PUBLIC_LIFI_API_KEY,
 
     feeConfig: {
       fee: 0,
