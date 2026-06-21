@@ -9,13 +9,12 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' blob: data: https:;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https: wss: ws://localhost:3000;
+  connect-src *;
   frame-src 'self' https://verify.walletconnect.com;
   object-src 'none';
   base-uri 'self';
   form-action 'self';
   frame-ancestors 'none';
-  upgrade-insecure-requests;
 `;
 
 const securityHeaders = [
