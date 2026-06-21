@@ -52,13 +52,36 @@ export function buildCheckoutWidgetConfig(
       ? { toAmount: opts.amount }
       : {}),
 
-    // Lock destination token if the receiver specified one
-    ...(hasTokenPreference ? { disabledUI: { toToken: true } } : {}),
+    // Lock destination UI — receiver's preferences are not editable
+    disabledUI: {
+      ...(hasTokenPreference ? { toToken: true } : {}),
+    },
+
+    // Hide exchange-specific elements for a clean payment flow
+    hiddenUI: {
+      toAddress: true,          // Already shown in PaymentCard above
+      reverseTokensButton: true, // Not relevant for payments
+      poweredBy: true,
+    },
 
     // Restrict destination chain if receiver specified one (EVM numeric chains only)
     ...(hasChainPreference && typeof toChainId === "number"
       ? { chains: { to: { allow: [toChainId] } } }
       : {}),
+
+    // Override "Exchange" header to "Payment"
+    languageResources: {
+      en: {
+        header: {
+          exchange: "Payment",
+          from: "Pay from",
+          to: "Receive on",
+        },
+        button: {
+          exchange: "Pay Now",
+        },
+      },
+    },
 
     // UI presentation — brutalist light theme to match the app
     variant: "compact",
@@ -85,11 +108,8 @@ export function buildCheckoutWidgetConfig(
 
     integrator: "justpay",
 
-    // Revenue model: LI.FI integrator fee split.
-    // Set feeConfig.fee: 0.005 and add a recipient to collect 0.5% of every
-    // swap/bridge automatically. LI.FI deducts and routes it during execution.
     feeConfig: {
-      fee: 0, // set to 0.005 when ready to activate fee collection
+      fee: 0,
     },
   };
 

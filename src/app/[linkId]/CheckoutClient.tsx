@@ -19,11 +19,11 @@ const LiFiWidget = dynamic(
 
 function WidgetSkeleton() {
   return (
-    <div className="w-full h-[480px] rounded-2xl bg-white/5 animate-pulse border border-white/8" />
+    <div className="w-full h-[480px] bg-[var(--color-neutral-secondary-soft)] animate-pulse border-[3px] border-black" />
   )
 }
 
-interface CheckoutClientProps {
+interface PaymentClientProps {
   linkId: Id<'paymentLinks'>
   receiverAddress: string
   destinationChain?: string | null
@@ -32,14 +32,14 @@ interface CheckoutClientProps {
   amount?: string | null
 }
 
-export function CheckoutClient({
+export function PaymentClient({
   linkId,
   receiverAddress,
   destinationChain,
   destinationTokenSymbol,
   destinationTokenAddress,
   amount,
-}: CheckoutClientProps) {
+}: PaymentClientProps) {
   const recordTransaction = useMutation(api.transactions.recordTransaction)
 
   const widgetConfig = buildCheckoutWidgetConfig({
@@ -84,9 +84,9 @@ export function CheckoutClient({
   }, [handleRouteExecutionCompleted])
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-xs text-zinc-500 uppercase tracking-widest font-medium">
-        Pay from any chain or token
+    <div className="flex flex-col gap-3">
+      <p className="text-[11px] text-black/50 uppercase tracking-widest font-black">
+        Select token & pay
       </p>
       <LiFiWidget
         integrator="justpay"

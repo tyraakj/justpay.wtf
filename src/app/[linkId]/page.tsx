@@ -2,7 +2,7 @@
 import { fetchQuery } from 'convex/nextjs'
 import { api } from '../../../convex/_generated/api'
 import { PaymentCard } from '@/components/PaymentCard'
-import { CheckoutClient } from './CheckoutClient'
+import { PaymentClient } from './CheckoutClient'
 import { ExpiryBadge } from '@/components/ExpiryBadge'
 import type { Metadata } from 'next'
 
@@ -89,7 +89,7 @@ export default async function PaymentPage({ params }: Props) {
               </div>
             )}
             <div className="p-4">
-              <CheckoutClient
+              <PaymentClient
                 linkId={link._id}
                 receiverAddress={link.receiverAddress}
                 destinationChain={link.destinationChain}
