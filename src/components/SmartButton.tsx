@@ -110,7 +110,7 @@ export function SmartButton({
           const txBuf = Buffer.from(quote.transactionRequest.data, 'base64')
           const transaction = Transaction.from(txBuf)
           const result = await signAndExecuteSui({ transaction })
-          txHash = result.digest
+          txHash = (result as any).digest
         } else {
           throw new Error('Unsupported payer chain')
         }
@@ -131,7 +131,7 @@ export function SmartButton({
             txHash = await wallet.sendTransaction(directTx as any, connection);
           } else if (isSui) {
             const result = await signAndExecuteSui({ transaction: directTx as any });
-            txHash = result.digest;
+            txHash = (result as any).digest;
           } else {
             throw err;
           }

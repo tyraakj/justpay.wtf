@@ -15,7 +15,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const suiAccount = useCurrentAccount();
   const { mutateAsync: suiSignMessage } = useSignPersonalMessage();
 
-  const currentAddress = publicKey?.toBase58() || evmAddress || suiAccount?.address;
+  const currentAddress = evmAddress || publicKey?.toBase58() || suiAccount?.address;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -40,15 +40,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     try {
       const message = `Sign this message to authenticate with JustPay.\n\nAddress: ${currentAddress}\nNonce: ${Date.now()}`;
       
-      if (publicKey && solSignMessage) {
-        const encodedMessage = new TextEncoder().encode(message);
-        await solSignMessage(encodedMessage);
-        // If signMessage doesn't throw, the user successfully signed it.
-      } else if (evmAddress) {
+      if (evmAddress && currentAddress === evmAddress) {
         const signature = await evmSignMessage({ message });
         const valid = await verifyMessage({ address: evmAddress as `0x${string}`, message, signature });
         if (!valid) throw new Error("Invalid EVM signature");
-      } else if (suiAccount) {
+      } else if (publicKey && solSignMessage && currentAddress === publicKey.toBase58()) {
+        const encodedMessage = new TextEncoder().encode(message);
+        await solSignMessage(encodedMessage);
+        // If signMessage doesn't throw, the user successfully signed it.
+      } else if (suiAccount && currentAddress === suiAccount.address) {
         await suiSignMessage({
             message: new TextEncoder().encode(message)
         });
