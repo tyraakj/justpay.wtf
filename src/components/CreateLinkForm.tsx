@@ -28,7 +28,7 @@ export function CreateLinkForm() {
   const [tokenSymbol, setTokenSymbol] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [memo, setMemo] = useState('');
-  const [expiry, setExpiry] = useState<ExpiryValue>({ type: 'never' });
+  const [expiry, setExpiry] = useState<ExpiryValue>({ type: 'preset', minutes: 15 });
   const [isLoading, setIsLoading] = useState(false);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
@@ -241,6 +241,9 @@ export function CreateLinkForm() {
           </div>
         </div>
 
+        {/* Expiry Picker — always visible, default 15 min */}
+        <ExpiryPicker value={expiry} onChange={setExpiry} />
+
         {/* Advanced Options Toggle */}
         <button
           onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
@@ -315,7 +318,6 @@ export function CreateLinkForm() {
                 </div>
               </div>
 
-              <ExpiryPicker value={expiry} onChange={setExpiry} />
             </motion.div>
           )}
         </AnimatePresence>
