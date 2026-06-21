@@ -60,26 +60,26 @@ export function buildCheckoutWidgetConfig(
       ? { chains: { to: { allow: [toChainId] } } }
       : {}),
 
-    // UI presentation — brutalist dark theme to match the app
+    // UI presentation — brutalist light theme to match the app
     variant: "compact",
-    appearance: "dark",
+    appearance: "light",
     theme: {
       colorSchemes: {
-        dark: {
+        light: {
           palette: {
-            primary: { main: "#ffffff" },
-            secondary: { main: "#a3a3a3" },
-            background: { default: "transparent", paper: "#111111" },
-            text: { primary: "#ffffff", secondary: "#a3a3a3" },
+            primary: { main: "#000000" },
+            secondary: { main: "#3a3a3a" },
+            background: { default: "#ffffff", paper: "#f5f0e6" },
+            text: { primary: "#000000", secondary: "#3a3a3a" },
           },
         },
       },
-      shape: { borderRadius: 12 } as any,
+      shape: { borderRadius: 0 } as any,
       typography: { fontFamily: '"Darker Grotesque", sans-serif' },
       container: {
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: "16px",
-        background: "transparent",
+        border: "3px solid #000000",
+        borderRadius: "0px",
+        background: "#ffffff",
       },
     },
 

@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
   /* Neutral Backgrounds */
   --neutral-primary-soft: #ffffff;
@@ -66,34 +64,6 @@
   --foreground: var(--body);
   --primary: var(--brand);
   --secondary: var(--section-secondary);
-  --surface: var(--neutral-primary-soft);
-}
-
-.dark {
-  /* Dark Mode Overrides */
-  --neutral-primary-soft: #0a0a0a;
-  --neutral-primary: #000000;
-  --neutral-primary-medium: #1a1a1a;
-  --neutral-primary-strong: #2a2a2a;
-  --neutral-secondary-soft: #0a0a0a;
-  --neutral-secondary: #000000;
-  --neutral-secondary-medium: #1a1a1a;
-  --neutral-secondary-strong: #2a2a2a;
-
-  --brand: #daa346;
-  --brand-strong: #daa346;
-
-  --heading: #ffffff;
-  --body: #e5e5e5;
-  --body-subtle: #cccccc;
-  --fg-brand: #e8bc6a;
-
-  --border-default: #ffffff;
-  --border-buffer: #000000;
-  --border-default-medium: #ffffff;
-
-  /* Legacy dark mode */
-  --background: var(--neutral-primary-soft);
   --surface: var(--neutral-primary-soft);
 }
 
