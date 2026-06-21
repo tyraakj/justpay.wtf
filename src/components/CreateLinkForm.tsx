@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowRight, Wallet, ClipboardPaste, Copy, Check, X, QrCode, Share2, Download, Link as LinkIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -36,6 +36,100 @@ export function CreateLinkForm() {
   const [createdLinkUrl, setCreatedLinkUrl] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  /**
+   * Generates a branded QR card image on a temporary canvas.
+   * Includes: brand header, QR code, payment details, and link URL.
+   */
+  const generateBrandedQR = useCallback((): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const qrCanvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+      if (!qrCanvas) { resolve(null); return; }
+
+      const width = 600;
+      const padding = 40;
+      const headerHeight = 80;
+      const qrSize = 280;
+      const detailLineHeight = 28;
+
+      // Collect details
+      const details: string[] = [];
+      if (amount && tokenSymbol) details.push(`Amount: ${amount} ${tokenSymbol}`);
+      else if (amount) details.push(`Amount: ${amount}`);
+      else if (tokenSymbol) details.push(`Token: ${tokenSymbol}`);
+      if (chain) details.push(`Network: ${chain}`);
+      if (memo) details.push(`Memo: ${memo}`);
+
+      const detailsHeight = details.length > 0 ? (details.length * detailLineHeight) + 32 : 0;
+      const urlHeight = 48;
+      const height = headerHeight + padding + qrSize + padding + detailsHeight + urlHeight + padding;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+
+      // Background
+      ctx.fillStyle = '#f5f5f0';
+      ctx.fillRect(0, 0, width, height);
+
+      // Header bar
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, headerHeight);
+
+      // Brand text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px "Darker Grotesque", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('JUSTPAY.WTF', padding, 50);
+
+      // "Payment Link" label
+      ctx.fillStyle = '#00e5cc';
+      ctx.font = 'bold 14px "Darker Grotesque", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('PAYMENT LINK', width - padding, 42);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px "Darker Grotesque", sans-serif';
+      ctx.fillText('Scan to pay', width - padding, 60);
+
+      // QR code area — white box with border
+      const qrX = (width - qrSize - 24) / 2;
+      const qrY = headerHeight + padding;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(qrX, qrY, qrSize + 24, qrSize + 24);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(qrX, qrY, qrSize + 24, qrSize + 24);
+
+      // Draw actual QR
+      ctx.drawImage(qrCanvas, qrX + 12, qrY + 12, qrSize, qrSize);
+
+      // Details section
+      let y = qrY + qrSize + 24 + 32;
+      if (details.length > 0) {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px "Darker Grotesque", sans-serif';
+        ctx.textAlign = 'center';
+        for (const detail of details) {
+          ctx.fillText(detail.toUpperCase(), width / 2, y);
+          y += detailLineHeight;
+        }
+      }
+
+      // URL at the bottom
+      y += 8;
+      ctx.fillStyle = '#666666';
+      ctx.font = '14px "Darker Grotesque", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(createdLinkUrl || '', width / 2, y);
+
+      // Bottom accent bar
+      ctx.fillStyle = '#ff69b4';
+      ctx.fillRect(0, height - 6, width, 6);
+
+      canvas.toBlob((blob) => resolve(blob), 'image/png');
+    });
+  }, [createdLinkUrl, amount, tokenSymbol, chain, memo]);
 
   const router = useRouter();
 
@@ -331,26 +425,22 @@ export function CreateLinkForm() {
                       </button>
 
                       <button
-                        onClick={() => {
-                          const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
-                          if (!canvas) return;
-                          canvas.toBlob(async (blob) => {
-                            if (!blob) return;
-                            const file = new File([blob], 'justpay-qr.png', { type: 'image/png' });
-                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                              try { await navigator.share({ files: [file], title: 'JustPay QR Code' }); } catch (e) { }
-                            } else {
-                              // canShare not supported — trigger download instead
-                              const url = URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.download = 'justpay-qr.png';
-                              a.href = url;
-                              document.body.appendChild(a);
-                              a.click();
-                              document.body.removeChild(a);
-                              URL.revokeObjectURL(url);
-                            }
-                          });
+                        onClick={async () => {
+                          const blob = await generateBrandedQR();
+                          if (!blob) return;
+                          const file = new File([blob], 'justpay-payment.png', { type: 'image/png' });
+                          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try { await navigator.share({ files: [file], title: 'JustPay Payment QR' }); } catch (e) { }
+                          } else {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.download = 'justpay-payment.png';
+                            a.href = url;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }
                         }}
                         className="flex-1 flex items-center justify-center gap-2 border-[3px] border-black bg-[var(--color-section-cyan)] px-2 py-3 font-bold uppercase transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-xs md:text-sm"
                       >
@@ -358,17 +448,17 @@ export function CreateLinkForm() {
                       </button>
 
                       <button
-                        onClick={() => {
-                          const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
-                          if (canvas) {
-                            const url = canvas.toDataURL("image/png");
-                            const a = document.createElement("a");
-                            a.download = "justpay-qr.png";
-                            a.href = url;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                          }
+                        onClick={async () => {
+                          const blob = await generateBrandedQR();
+                          if (!blob) return;
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.download = 'justpay-payment.png';
+                          a.href = url;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
                         }}
                         className="flex-1 flex items-center justify-center gap-2 border-[3px] border-black bg-black text-white px-2 py-3 font-bold uppercase transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_var(--color-section-yellow)] text-xs md:text-sm"
                       >
