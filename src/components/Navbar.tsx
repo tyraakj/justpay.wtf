@@ -1,15 +1,74 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { FaLinkedinIn, FaInstagram } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { WalletConnectButton } from './shared/WalletConnectButton';
+import { useAuth } from '@/lib/useAuth';
+import { useWalletMenu } from '@lifi/wallet-management';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useAccount, useSignMessage } from 'wagmi';
+import { useAccount as useLiFiAccount } from '@lifi/wallet-management';
+import { ChainType } from '@lifi/sdk';
+import { useDAppKit } from '@mysten/dapp-kit-react';
+import { verifyMessage } from 'viem';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [chainsOpen, setChainsOpen] = useState(false);
+  const { isAuthenticated, isConnected, currentAddress, markAuthenticated } = useAuth();
+  const { openWalletMenu } = useWalletMenu();
+  const router = useRouter();
+
+  // Signing hooks
+  const { publicKey, signMessage: solSignMessage } = useWallet();
+  const { address: evmAddress } = useAccount();
+  const { signMessageAsync: evmSignMessage } = useSignMessage();
+  const { account: suiAccount } = useLiFiAccount({ chainType: ChainType.MVM });
+  const dappKit = useDAppKit();
+
+  const handleDashboardClick = useCallback(async () => {
+    // Already authenticated — just navigate
+    if (isAuthenticated) {
+      router.push('/dashboard');
+      setOpen(false);
+      return;
+    }
+
+    // Not connected — open wallet picker first
+    if (!isConnected) {
+      openWalletMenu();
+      return;
+    }
+
+    // Connected but not authenticated — sign message
+    if (!currentAddress) return;
+    try {
+      const message = `Sign this message to authenticate with JustPay.\n\nAddress: ${currentAddress}\nNonce: ${Date.now()}`;
+
+      if (publicKey && solSignMessage) {
+        await solSignMessage(new TextEncoder().encode(message));
+      } else if (evmAddress) {
+        const signature = await evmSignMessage({ message });
+        const valid = await verifyMessage({ address: evmAddress as `0x${string}`, message, signature });
+        if (!valid) throw new Error('Invalid EVM signature');
+      } else if (suiAccount?.address) {
+        await dappKit.signPersonalMessage(new TextEncoder().encode(message));
+      } else {
+        throw new Error('No wallet capable of signing was found.');
+      }
+
+      localStorage.setItem(`justpay_auth_${currentAddress}`, 'true');
+      markAuthenticated(currentAddress);
+      router.push('/dashboard');
+      setOpen(false);
+    } catch (err) {
+      console.error('Auth failed:', err);
+    }
+  }, [isAuthenticated, isConnected, currentAddress, openWalletMenu, router, publicKey, solSignMessage, evmAddress, evmSignMessage, suiAccount?.address, dappKit, markAuthenticated]);
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     if (window.location.pathname === '/') {
@@ -72,9 +131,12 @@ export const Navbar = () => {
             </h3>
           </Link>
           <div className="text-[16px] flex items-center gap-2">
-            <Link href="/dashboard" className="px-4 py-1.5 text-[14px] rounded-none font-bold bg-[#333333] text-white hover:bg-[var(--color-section-cyan)] hover:text-black transition-colors border-2 border-black">
+            <button
+              onClick={handleDashboardClick}
+              className="px-4 py-1.5 text-[14px] rounded-none font-bold bg-[#333333] text-white hover:bg-[var(--color-section-cyan)] hover:text-black transition-colors border-2 border-black cursor-pointer"
+            >
               Dashboard
-            </Link>
+            </button>
             <div className="scale-90 origin-right">
               <WalletConnectButton variant="navbar" />
             </div>
@@ -108,20 +170,20 @@ export const Navbar = () => {
               OUR PRODUCTS
             </h3>
             <div className="mt-6 flex flex-col gap-2">
-              <Link href="/dashboard" className="py-4 border-b-2 border-white/10 text-[24px] font-bold text-white hover:text-[var(--color-section-cyan)] transition-colors">
+              <button onClick={handleDashboardClick} className="py-4 border-b-2 border-white/10 text-[24px] font-bold text-white hover:text-[var(--color-section-cyan)] transition-colors text-left cursor-pointer">
                 Dashboard
-              </Link>
+              </button>
 
-              <Link href="/dashboard/links" className="flex items-center py-4 border-b-2 border-white/10 gap-4 cursor-pointer hover:text-[var(--color-section-cyan)] transition-colors">
+              <button onClick={handleDashboardClick} className="flex items-center py-4 border-b-2 border-white/10 gap-4 cursor-pointer hover:text-[var(--color-section-cyan)] transition-colors text-left">
                 <div className="text-[24px] font-bold text-white">Create Link</div>
                 <span className="bg-[var(--color-section-pink)] text-black border-2 border-black px-2 py-0.5 text-[12px] font-bold">
                   ACTIVE
                 </span>
-              </Link>
+              </button>
 
-              <Link href="/dashboard/history" className="py-4 border-b-2 border-white/10 text-[24px] font-bold text-white hover:text-[var(--color-section-cyan)] transition-colors cursor-pointer">
+              <button onClick={handleDashboardClick} className="py-4 border-b-2 border-white/10 text-[24px] font-bold text-white hover:text-[var(--color-section-cyan)] transition-colors cursor-pointer text-left">
                 Transactions
-              </Link>
+              </button>
             </div>
 
           </motion.div>

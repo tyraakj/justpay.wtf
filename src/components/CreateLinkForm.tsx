@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowRight, Wallet, ClipboardPaste } from 'lucide-react';
+import { ArrowRight, Wallet, ClipboardPaste, Copy, Check, X, QrCode, Share2, Download, Link as LinkIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useAccount as useLiFiAccount } from '@lifi/wallet-management';
 import { ChainType } from '@lifi/sdk';
 import { useMutation } from "convex/react";
@@ -30,6 +31,12 @@ export function CreateLinkForm() {
   const [expiry, setExpiry] = useState<ExpiryValue>({ type: 'never' });
   const [isLoading, setIsLoading] = useState(false);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
+  // Success Modal State
+  const [createdLinkUrl, setCreatedLinkUrl] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const router = useRouter();
 
   const { account: evmAccount } = useLiFiAccount({ chainType: ChainType.EVM });
@@ -76,7 +83,8 @@ export function CreateLinkForm() {
       if (links.length > 5) links = links.slice(0, 5);
       localStorage.setItem('justpay_links', JSON.stringify(links));
 
-      router.push(`/${result.shortCode}`);
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://justpay.wtf';
+      setCreatedLinkUrl(`${origin}/${result.shortCode}`);
     } catch (error: any) {
       console.error(error);
       alert(error.message || 'Failed to create link');
@@ -227,6 +235,153 @@ export function CreateLinkForm() {
           {!isLoading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" strokeWidth={3} />}
         </button>
       </div>
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {createdLinkUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              className="bg-[var(--color-neutral-primary-soft)] border-[4px] border-black w-full max-w-md shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col"
+            >
+              <div className="flex justify-between items-center p-4 border-b-4 border-black bg-[var(--color-section-pink)]">
+                <h2 className="text-xl font-black uppercase tracking-wider text-black">Link Created!</h2>
+                <button
+                  onClick={() => {
+                    setCreatedLinkUrl(null);
+                    setShowQR(false);
+                  }}
+                  className="hover:scale-110 transition-transform bg-white border-2 border-black p-1"
+                >
+                  <X className="w-5 h-5 text-black" strokeWidth={3} />
+                </button>
+              </div>
+
+              <div className="p-6 flex flex-col gap-6 items-center">
+                {!showQR ? (
+                  <div className="w-full flex flex-col items-center gap-4">
+                    <div className="w-full flex items-center border-[3px] border-black bg-white p-2">
+                      <a
+                        href={createdLinkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 px-2 font-bold text-black truncate underline decoration-dotted hover:decoration-solid hover:text-blue-700 transition-colors"
+                      >
+                        {createdLinkUrl}
+                      </a>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(createdLinkUrl);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }}
+                        className="bg-[var(--color-section-yellow)] border-2 border-black p-2 hover:bg-[var(--color-section-cyan)] transition-colors group"
+                      >
+                        {copied ? <Check className="w-5 h-5 text-black" /> : <Copy className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />}
+                      </button>
+                    </div>
+
+                    <div className="flex w-full gap-3 mt-2">
+                      <button
+                        onClick={async () => {
+                          if (navigator.share) {
+                            try { await navigator.share({ title: 'JustPay Link', url: createdLinkUrl }); }
+                            catch (e) { }
+                          }
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 border-[3px] border-black bg-white px-4 py-3 font-bold uppercase transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                      >
+                        <Share2 className="w-4 h-4" /> Share
+                      </button>
+                      <button
+                        onClick={() => setShowQR(true)}
+                        className="flex-1 flex items-center justify-center gap-2 border-[3px] border-black bg-black text-white px-4 py-3 font-bold uppercase transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_var(--color-section-yellow)]"
+                      >
+                        <QrCode className="w-4 h-4" /> QR Code
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full flex flex-col items-center gap-6">
+                    <div className="p-4 bg-white border-[3px] border-black">
+                      <QRCodeCanvas
+                        id="qr-canvas"
+                        value={createdLinkUrl}
+                        size={200}
+                        bgColor={"#ffffff"}
+                        fgColor={"#000000"}
+                        level={"Q"}
+                        includeMargin={false}
+                      />
+                    </div>
+
+                    <div className="flex w-full gap-2">
+                      <button
+                        onClick={() => setShowQR(false)}
+                        className="flex-1 flex items-center justify-center gap-2 border-[3px] border-black bg-white px-2 py-3 font-bold uppercase transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-xs md:text-sm"
+                      >
+                        <LinkIcon className="w-4 h-4" /> Link
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+                          if (!canvas) return;
+                          canvas.toBlob(async (blob) => {
+                            if (!blob) return;
+                            const file = new File([blob], 'justpay-qr.png', { type: 'image/png' });
+                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                              try { await navigator.share({ files: [file], title: 'JustPay QR Code' }); } catch (e) { }
+                            } else {
+                              // canShare not supported — trigger download instead
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.download = 'justpay-qr.png';
+                              a.href = url;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(url);
+                            }
+                          });
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 border-[3px] border-black bg-[var(--color-section-cyan)] px-2 py-3 font-bold uppercase transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-xs md:text-sm"
+                      >
+                        <Share2 className="w-4 h-4" /> Share
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+                          if (canvas) {
+                            const url = canvas.toDataURL("image/png");
+                            const a = document.createElement("a");
+                            a.download = "justpay-qr.png";
+                            a.href = url;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 border-[3px] border-black bg-black text-white px-2 py-3 font-bold uppercase transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_var(--color-section-yellow)] text-xs md:text-sm"
+                      >
+                        <Download className="w-4 h-4" /> Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

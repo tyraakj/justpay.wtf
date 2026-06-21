@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAccount, useSignMessage } from 'wagmi';
 import { useAccount as useLiFiAccount } from '@lifi/wallet-management';
@@ -9,6 +9,7 @@ import { useDAppKit } from '@mysten/dapp-kit-react';
 import { verifyMessage } from 'viem';
 import { BrutalistButton } from '@/components/brutalism/Button';
 import { ShieldAlert } from 'lucide-react';
+import { useAuth } from '@/lib/useAuth';
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { publicKey, signMessage: solSignMessage } = useWallet();
@@ -17,24 +18,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const { account: suiAccount } = useLiFiAccount({ chainType: ChainType.MVM });
   const dappKit = useDAppKit();
 
-  const currentAddress = publicKey?.toBase58() || evmAddress || suiAccount?.address;
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { currentAddress, isAuthenticated, isConnected, markAuthenticated } = useAuth();
   const [isSigning, setIsSigning] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    if (currentAddress) {
-      const authSession = localStorage.getItem(`justpay_auth_${currentAddress}`);
-      if (authSession === 'true') {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, [currentAddress]);
 
   const handleAuthenticate = async () => {
     if (!currentAddress) return;
@@ -58,7 +43,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       }
 
       localStorage.setItem(`justpay_auth_${currentAddress}`, 'true');
-      setIsAuthenticated(true);
+      markAuthenticated(currentAddress);
     } catch (error) {
       console.error("Auth failed:", error);
       alert("Authentication failed or was cancelled.");
@@ -67,9 +52,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (!mounted) return null;
-
-  if (!currentAddress) {
+  if (!isConnected) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 border-4 border-black bg-[var(--color-section-pink)] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-3xl mx-auto mt-12 text-center">
         <ShieldAlert className="w-16 h-16 text-black mb-6" strokeWidth={3} />
