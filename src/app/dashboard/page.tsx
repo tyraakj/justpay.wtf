@@ -6,19 +6,15 @@ import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { CreateLinkForm } from "@/components/CreateLinkForm";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useAccount } from 'wagmi';
+import { useAuth } from '@/lib/useAuth';
 import { BrutalistButton } from '@/components/brutalism/Button';
 
 export default function DashboardOverview() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { currentAddress } = useAuth();
 
-  const { publicKey } = useWallet();
-  const { address: evmAddress } = useAccount();
-  const address = publicKey?.toBase58() || evmAddress;
-
-  const links = useQuery(api.links.getLinksByMerchant, address ? { merchantAddress: address } : "skip");
-  const transactions = useQuery(api.transactions.getTransactionsByMerchant, address ? { merchantAddress: address } : "skip");
+  const links = useQuery(api.links.getLinksByReceiver, currentAddress ? { receiverAddress: currentAddress } : "skip");
+  const transactions = useQuery(api.transactions.getTransactionsByReceiver, currentAddress ? { receiverAddress: currentAddress } : "skip");
 
   const isLoading = links === undefined || transactions === undefined;
   const activeLinks = links?.filter(l => l.status === 'active').length || 0;
@@ -29,7 +25,7 @@ export default function DashboardOverview() {
     ...(links || []).map(l => ({
       id: `link-${l._id}`,
       action: 'Link Generated',
-      amount: `$${Number(l.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+      amount: `$${Number(l.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
       time: new Date(l._creationTime).toLocaleDateString(),
       status: l.status === 'active' ? 'Active' : 'Completed',
       timestamp: l._creationTime
@@ -37,7 +33,7 @@ export default function DashboardOverview() {
     ...(transactions || []).map(tx => ({
       id: `tx-${tx._id}`,
       action: 'Payment Received',
-      amount: `+${Number(tx.sourceAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+      amount: `+${Number(tx.sourceAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
       time: new Date(tx._creationTime).toLocaleDateString(),
       status: tx.status === 'confirmed' ? 'Settled' : 'Pending',
       timestamp: tx._creationTime
@@ -50,8 +46,8 @@ export default function DashboardOverview() {
       <div className="flex flex-col gap-8">
         <div className="flex items-center justify-between border-b-4 border-black pb-4">
           <h1 className="text-[48px] font-black text-black uppercase leading-none m-0">Overview</h1>
-          <BrutalistButton 
-            variant="brand" 
+          <BrutalistButton
+            variant="brand"
             onClick={() => setIsModalOpen(true)}
             className="w-auto px-6 py-2 shadow-[var(--shadow-sm)] text-[16px]"
           >
@@ -78,11 +74,11 @@ export default function DashboardOverview() {
             <p className="text-black font-black text-[16px] mb-2 uppercase border-b-2 border-black pb-2">Active Links</p>
             <div className="flex items-baseline gap-3 mt-4">
               {isLoading ? (
-                 <div className="h-9 w-16 bg-white border-2 border-black animate-pulse" />
+                <div className="h-9 w-16 bg-white border-2 border-black animate-pulse" />
               ) : (
-                 <h2 className="text-[40px] font-black text-black leading-none">
-                   <AnimatedCounter value={activeLinks} />
-                 </h2>
+                <h2 className="text-[40px] font-black text-black leading-none">
+                  <AnimatedCounter value={activeLinks} />
+                </h2>
               )}
             </div>
           </div>
@@ -102,13 +98,13 @@ export default function DashboardOverview() {
         {/* Recent Activity */}
         <div className="bg-[var(--color-neutral-primary-soft)] border-4 border-black p-6 shadow-[var(--shadow-md)]">
           <h2 className="text-[24px] font-black text-black mb-6 uppercase border-b-4 border-black pb-2">Recent Activity</h2>
-          
+
           {isLoading ? (
-             <div className="flex flex-col gap-4">
-               {[1,2,3].map(i => (
-                 <div key={i} className="h-20 w-full bg-[var(--color-neutral-secondary-soft)] border-4 border-black animate-pulse" />
-               ))}
-             </div>
+            <div className="flex flex-col gap-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-20 w-full bg-[var(--color-neutral-secondary-soft)] border-4 border-black animate-pulse" />
+              ))}
+            </div>
           ) : activities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 border-4 border-dashed border-black bg-[var(--color-neutral-secondary-soft)]">
               <p className="text-black font-bold text-[16px] uppercase tracking-wider">No payment activity found for this wallet yet.</p>
@@ -125,9 +121,8 @@ export default function DashboardOverview() {
                     <p className={`text-[24px] font-black ${item.amount.startsWith('+') ? 'text-[var(--color-success)]' : 'text-black'}`}>
                       {item.amount}
                     </p>
-                    <span className={`px-3 py-1 text-[14px] font-black border-2 border-black shadow-[var(--shadow-xs)] uppercase ${
-                      item.status === 'Settled' || item.status === 'Active' ? 'bg-[var(--color-success)] text-black' : 'bg-[var(--color-warning)] text-black'
-                    }`}>
+                    <span className={`px-3 py-1 text-[14px] font-black border-2 border-black shadow-[var(--shadow-xs)] uppercase ${item.status === 'Settled' || item.status === 'Active' ? 'bg-[var(--color-success)] text-black' : 'bg-[var(--color-warning)] text-black'
+                      }`}>
                       {item.status}
                     </span>
                   </div>
@@ -149,7 +144,7 @@ export default function DashboardOverview() {
                     <h2 className="text-[28px] sm:text-[32px] font-black text-black uppercase leading-tight">Create Payment Link</h2>
                     <p className="text-[14px] sm:text-[16px] text-black font-bold">Step 1: Connect your destination wallet</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setIsModalOpen(false)}
                     className="shrink-0 bg-[var(--color-section-pink)] border-[3px] border-black p-2 text-black hover:bg-[var(--color-section-yellow)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center gap-2 font-black uppercase text-[14px]"
                   >

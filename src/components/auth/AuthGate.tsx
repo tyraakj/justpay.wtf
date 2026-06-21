@@ -36,7 +36,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         const valid = await verifyMessage({ address: evmAddress as `0x${string}`, message, signature });
         if (!valid) throw new Error("Invalid EVM signature");
       } else if (suiAccount?.address) {
-        await dappKit.signPersonalMessage(new TextEncoder().encode(message));
+        await dappKit.signPersonalMessage({ message: new TextEncoder().encode(message) });
         // If it doesn't throw, the user successfully signed it.
       } else {
         throw new Error("No wallet capable of signing was found.");

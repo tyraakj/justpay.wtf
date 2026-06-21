@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrowRight, Wallet, ClipboardPaste, Copy, Check, X, QrCode, Share2, Download, Link as LinkIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -21,6 +21,10 @@ const TOKEN_DOMAINS: Record<string, string> = {
   'SUI': 'sui.io'
 };
 
+function tokenLogoUrl(symbol: string) {
+  return `https://img.logo.dev/crypto/${symbol.toLowerCase()}?token=pk_BShsdiwDTuyRVVBW5GadOg`
+}
+
 export function CreateLinkForm() {
   const [address, setAddress] = useState('');
   const [chain, setChain] = useState<string | null>(null);
@@ -31,6 +35,7 @@ export function CreateLinkForm() {
   const [expiry, setExpiry] = useState<ExpiryValue>({ type: 'preset', minutes: 15 });
   const [isLoading, setIsLoading] = useState(false);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const hasAutoFilled = useRef(false);
 
   // Success Modal State
   const [createdLinkUrl, setCreatedLinkUrl] = useState<string | null>(null);
@@ -139,18 +144,30 @@ export function CreateLinkForm() {
   const connectedAddress = evmAccount?.address || svmAccount?.address || suiAccount?.address;
   const createLinkMutation = useMutation(api.links.createLink);
 
+  // Autofill address once when wallet connects
   useEffect(() => {
-    if (evmAccount?.address && evmAccount?.chainId) {
-      if (!address) setAddress(evmAccount.address);
-      if (!chain) setChain(evmAccount.chainId.toString());
+    if (hasAutoFilled.current) return;
+    if (evmAccount?.address) {
+      setAddress(evmAccount.address);
+      hasAutoFilled.current = true;
     } else if (svmAccount?.address) {
-      if (!address) setAddress(svmAccount.address);
-      if (!chain) setChain('sol');
+      setAddress(svmAccount.address);
+      hasAutoFilled.current = true;
     } else if (suiAccount?.address) {
-      if (!address) setAddress(suiAccount.address);
-      if (!chain) setChain('sui');
+      setAddress(suiAccount.address);
+      hasAutoFilled.current = true;
     }
-  }, [evmAccount?.address, evmAccount?.chainId, svmAccount?.address, suiAccount?.address]);
+  }, [evmAccount?.address, svmAccount?.address, suiAccount?.address]);
+
+  // Clear fields when wallet disconnects
+  useEffect(() => {
+    if (!connectedAddress && hasAutoFilled.current) {
+      setAddress('');
+      setChain(null);
+      setTokenSymbol(null);
+      hasAutoFilled.current = false;
+    }
+  }, [connectedAddress]);
 
   const handleCreate = async () => {
     const finalAddress = address || connectedAddress;
@@ -200,131 +217,177 @@ export function CreateLinkForm() {
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder={connectedAddress ? `Connected: ${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}` : (chain === 'sui' ? "0x... (64 hex chars)" : chain === 'sol' ? "Solana address" : "Wallet address")}
+              placeholder="Wallet address (0x... or base58)"
               className="w-full bg-white border-[3px] border-black px-4 py-4 pr-32 text-[16px] font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-brand-softer)] transition-colors"
             />
             <div className="absolute right-3 flex items-center gap-2">
-              <span className="t-tt-wrap">
-                <button
-                  onClick={async () => {
-                    try {
-                      const text = await navigator.clipboard.readText();
-                      if (text) setAddress(text.trim());
-                    } catch (err) {
-                      console.error('Failed to read clipboard', err);
-                    }
-                  }}
-                  className="bg-[var(--color-section-yellow)] border-2 border-black p-2 hover:bg-[var(--color-section-pink)] transition-colors group hidden md:block t-tt-trigger"
-                >
-                  <ClipboardPaste className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />
-                </button>
-                <span className="t-tt bg-[var(--color-section-yellow)]" role="tooltip">Paste Address</span>
-              </span>
-
-              {connectedAddress && !address ? (
+              {/* Paste — only when input is empty */}
+              {!address && (
                 <span className="t-tt-wrap">
                   <button
-                    onClick={() => setAddress(connectedAddress)}
-                    className="bg-[var(--color-section-cyan)] border-2 border-black p-2 hover:bg-[var(--color-section-green)] transition-colors group hidden md:block t-tt-trigger"
+                    onClick={async () => {
+                      try {
+                        const text = await navigator.clipboard.readText();
+                        if (text) setAddress(text.trim());
+                      } catch (err) {
+                        console.error('Failed to read clipboard', err);
+                      }
+                    }}
+                    className="bg-[var(--color-section-yellow)] border-2 border-black p-2 hover:bg-[var(--color-section-pink)] transition-colors group hidden md:block t-tt-trigger"
                   >
-                    <Wallet className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />
+                    <ClipboardPaste className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />
                   </button>
-                  <span className="t-tt bg-[var(--color-section-cyan)]" role="tooltip">Autofill Wallet</span>
+                  <span className="t-tt bg-[var(--color-section-yellow)]" role="tooltip">Paste Address</span>
                 </span>
-              ) : (
+              )}
+
+              {/* Clear field — when address has text */}
+              {address && (
+                <span className="t-tt-wrap">
+                  <button
+                    onClick={() => setAddress('')}
+                    className="bg-[var(--color-section-pink)] border-2 border-black p-2 hover:bg-[var(--color-section-yellow)] transition-colors group hidden md:flex items-center t-tt-trigger"
+                  >
+                    <X className="w-5 h-5 text-black" strokeWidth={3} />
+                  </button>
+                  <span className="t-tt bg-[var(--color-section-pink)]" role="tooltip">Clear Address</span>
+                </span>
+              )}
+
+              {/* Connect wallet — only when not connected and input is empty */}
+              {!connectedAddress && !address && (
                 <span className="t-tt-wrap">
                   <WalletConnectButton variant="input" />
-                  <span className="t-tt" role="tooltip">{connectedAddress ? "Disconnect Wallet" : "Connect Wallet"}</span>
+                  <span className="t-tt" role="tooltip">Connect Wallet</span>
                 </span>
               )}
             </div>
           </div>
         </div>
 
+        {/* Network & Token Selection — only shown when address is valid */}
+        {(() => {
+          const addr = (address || connectedAddress || '').trim();
+          const isValidAddress =
+            (addr.startsWith('0x') && addr.length === 66 && /^0x[0-9a-fA-F]{64}$/.test(addr)) || // SUI
+            (addr.startsWith('0x') && addr.length === 42 && /^0x[0-9a-fA-F]{40}$/.test(addr)) || // EVM
+            (!addr.startsWith('0x') && addr.length >= 32 && addr.length <= 44 && /^[1-9A-HJ-NP-Za-km-z]+$/.test(addr)); // SOL
+          if (!isValidAddress) return null;
+          return (
+            <div className="flex flex-col gap-2 relative">
+              <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-cyan)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2">Network & Token</label>
+              <div className="bg-white border-[3px] border-black p-3 pt-4 hover:bg-slate-50 transition-colors">
+                <ChainTokenSelector
+                  selectedChainId={chain}
+                  selectedToken={tokenSymbol}
+                  receiverAddress={address || connectedAddress || ''}
+                  connectedChainType={
+                    evmAccount?.address ? 'EVM'
+                      : svmAccount?.address ? 'SVM'
+                        : suiAccount?.address ? 'MVM'
+                          : null
+                  }
+                  connectedChainId={
+                    evmAccount?.address && evmAccount?.chainId ? evmAccount.chainId.toString()
+                      : svmAccount?.address ? 'sol'
+                        : suiAccount?.address ? 'sui'
+                          : null
+                  }
+                  onChainSelect={setChain}
+                  onTokenSelect={setTokenSymbol}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Expiry Picker — always visible, default 15 min */}
         <ExpiryPicker value={expiry} onChange={setExpiry} />
 
-        {/* Advanced Options Toggle */}
-        <button
-          onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-          className="text-[12px] font-bold uppercase tracking-wider text-zinc-600 hover:text-black bg-transparent border-t-2 border-dashed border-black/30 hover:border-black/100 pt-3 pb-2 mt-2 transition-all w-full text-center"
-        >
-          {isAdvancedOpen ? "- Hide Advanced Options" : "+ Show Advanced Options"}
-        </button>
+        {/* Advanced Options — only when valid address */}
+        {(() => {
+          const addr = (address || connectedAddress || '').trim();
+          const isValid =
+            (addr.startsWith('0x') && addr.length === 66 && /^0x[0-9a-fA-F]{64}$/.test(addr)) ||
+            (addr.startsWith('0x') && addr.length === 42 && /^0x[0-9a-fA-F]{40}$/.test(addr)) ||
+            (!addr.startsWith('0x') && addr.length >= 32 && addr.length <= 44 && /^[1-9A-HJ-NP-Za-km-z]+$/.test(addr));
+          if (!isValid) return null;
+          return (
+            <>
+              <button
+                onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+                className="flex items-center justify-center gap-2 border-[3px] border-black bg-[var(--color-neutral-secondary-soft)] px-4 py-3 text-[13px] font-black uppercase tracking-wider text-black hover:bg-[var(--color-section-yellow)] hover:-translate-y-[1px] hover:shadow-[4px_4px_0px_0px_#000] shadow-[2px_2px_0px_0px_#000] transition-all mt-2 w-full"
+              >
+                {isAdvancedOpen ? '− Hide Advanced Options' : '+ Amount, Memo & Email'}
+              </button>
 
-        <AnimatePresence>
-          {isAdvancedOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
-              animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
-              exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col gap-4 border-[3px] border-black border-dashed p-3 mt-2"
-            >
-              {/* Token & Network Selection */}
-              <div className="flex flex-col gap-2 mt-2">
-                <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-cyan)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2">Network & Asset</label>
-                <div className="bg-white border-[3px] border-black p-3 pt-4 hover:bg-slate-50 transition-colors">
-                  <ChainTokenSelector
-                    selectedChainId={chain}
-                    selectedToken={tokenSymbol}
-                    onChainSelect={setChain}
-                    onTokenSelect={setTokenSymbol}
-                  />
-                </div>
-              </div>
+              <AnimatePresence>
+                {isAdvancedOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
+                    animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
+                    exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex flex-col gap-4 border-[3px] border-black p-3 mt-2 bg-white"
+                  >
+                    {/* Amount Input */}
+                    <div className="flex flex-col gap-2 relative group mt-2">
+                      <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-pink)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2 transition-transform group-focus-within:-translate-y-1">Amount to Request</label>
+                      <div className="bg-white border-[3px] border-black flex items-center p-2 focus-within:bg-[var(--color-brand-softer)] transition-colors">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={amount}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '' || /^\d*\.?\d*$/.test(val)) setAmount(val);
+                          }}
+                          placeholder="0.00"
+                          className="w-full bg-transparent px-2 py-3 text-[32px] md:text-[40px] font-black text-black placeholder:text-black/20 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <div className="flex items-center gap-2 pr-4 bg-white px-3 py-2 border-2 border-black">
+                          {tokenSymbol && (
+                            <img src={tokenLogoUrl(tokenSymbol)} alt={tokenSymbol} className="w-6 h-6 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                          )}
+                          <span className="text-xl font-black">{tokenSymbol ?? 'ANY'}</span>
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Amount Input */}
-              <div className="flex flex-col gap-2 relative group mt-2">
-                <label className="text-[12px] font-black uppercase tracking-wider text-black bg-[var(--color-section-pink)] px-2 py-1 inline-block w-max border-2 border-black -mb-3 relative z-10 ml-2 transition-transform group-focus-within:-translate-y-1">Amount to Request</label>
-                <div className="bg-white border-[3px] border-black flex items-center p-2 focus-within:bg-[var(--color-brand-softer)] transition-colors">
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.0"
-                    className="w-full bg-transparent px-2 py-3 text-[32px] md:text-[40px] font-black text-black placeholder:text-black/20 outline-none"
-                  />
-                  <div className="flex items-center gap-2 pr-4 bg-white px-3 py-2 border-2 border-black">
-                    {tokenSymbol && TOKEN_DOMAINS[tokenSymbol] && (
-                      <img src={`https://img.logo.dev/${TOKEN_DOMAINS[tokenSymbol]}?token=pk_BShsdiwDTuyRVVBW5GadOg&bg=transparent`} alt={tokenSymbol} className="w-6 h-6 object-contain bg-transparent" />
-                    )}
-                    <span className="text-xl font-black">{tokenSymbol ?? 'ANY'}</span>
-                  </div>
-                </div>
-              </div>
+                    <div className="flex flex-col gap-1 mt-2">
+                      <label className="text-[12px] font-black uppercase tracking-wider text-black">Memo (Optional)</label>
+                      <input
+                        type="text"
+                        value={memo}
+                        onChange={(e) => setMemo(e.target.value)}
+                        placeholder="Invoice #123, Coffee, etc."
+                        className="w-full border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-section-yellow)] transition-colors"
+                      />
+                    </div>
 
-              <div className="flex flex-col gap-1 mt-2">
-                <label className="text-[12px] font-black uppercase tracking-wider text-black">Memo (Optional)</label>
-                <input
-                  type="text"
-                  value={memo}
-                  onChange={(e) => setMemo(e.target.value)}
-                  placeholder="Invoice #123, Coffee, etc."
-                  className="w-full border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-section-yellow)] transition-colors"
-                />
-              </div>
+                    <div className="flex gap-4">
+                      <div className="flex flex-col gap-1 flex-1">
+                        <label className="text-[12px] font-black uppercase tracking-wider text-black">Email (Receipts)</label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="you@email.com"
+                          className="w-full border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-section-cyan)] transition-colors"
+                        />
+                      </div>
+                    </div>
 
-              <div className="flex gap-4">
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-[12px] font-black uppercase tracking-wider text-black">Email (Receipts)</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@email.com"
-                    className="w-full border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black placeholder:text-black/40 outline-none focus:bg-[var(--color-section-cyan)] transition-colors"
-                  />
-                </div>
-              </div>
-
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          );
+        })()}
 
         <button
           onClick={handleCreate}
-          disabled={isLoading || (!address && !connectedAddress)}
+          disabled={isLoading || (!address && !connectedAddress) || !chain || !tokenSymbol}
           className="w-full mt-4 flex items-center justify-center gap-2 border-[4px] border-black bg-black px-6 py-4 text-[22px] font-black uppercase text-white shadow-[6px_6px_0px_0px_var(--color-section-yellow)] hover:shadow-[10px_10px_0px_0px_var(--color-section-yellow)] hover:-translate-y-1 hover:translate-x-1 active:translate-y-0 active:translate-x-0 active:shadow-[0px_0px_0px_0px_var(--color-section-yellow)] transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
         >
           {isLoading ? 'Creating...' : 'Create Payment Link'}

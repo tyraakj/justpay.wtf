@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAccount as useLiFiAccount } from "@lifi/wallet-management";
 import { ChainType } from "@lifi/sdk";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -23,17 +23,35 @@ export function useAuth() {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const prevAddressRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Clear auth when wallet disconnects (address goes from defined → undefined)
+  useEffect(() => {
+    if (!mounted) return;
+    const prevAddr = prevAddressRef.current;
+    prevAddressRef.current = currentAddress;
+
+    if (prevAddr && !currentAddress) {
+      // Wallet disconnected — clear auth for previous address
+      localStorage.removeItem(`justpay_auth_${prevAddr}`);
+      setIsAuthenticated(false);
+      window.dispatchEvent(new Event("justpay_auth_changed"));
+    }
+  }, [currentAddress, mounted]);
+
   useEffect(() => {
     if (!mounted) return;
     if (currentAddress) {
-      setIsAuthenticated(
-        localStorage.getItem(`justpay_auth_${currentAddress}`) === "true",
-      );
+      const stored = localStorage.getItem(`justpay_auth_${currentAddress}`);
+      console.log("[useAuth] checking localStorage:", {
+        key: `justpay_auth_${currentAddress?.slice(0, 10)}`,
+        stored,
+      });
+      setIsAuthenticated(stored === "true");
     } else {
       setIsAuthenticated(false);
     }

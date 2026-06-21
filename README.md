@@ -2,7 +2,7 @@
 
 > **Zero-Auth Crypto Payment Links with Integrated Swaps**
 
-A frictionless payment link generator for Solana and Ethereum. Create shareable payment links in seconds—no wallet connection required for payment creation. Direct wallet-to-wallet transfers with built-in token swap support.
+A frictionless payment link generator for Sui, Solana and Ethereum. Create shareable payment links in seconds—no wallet connection required for payment creation. Direct wallet-to-wallet transfers with built-in token swap support.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org)
@@ -589,6 +589,7 @@ Create a new payment link.
 **Valid `chain` values:** `ethereum` | `arbitrum` | `optimism` | `polygon` | `base` | `solana` | `sui`
 
 **Sui-specific notes:**
+
 - `recipient_address` must be a valid Sui address (`0x` + 64 hex characters)
 - `token_address` must be `0x2::sui::SUI` for native SUI transfers on testnet
 - Payment verification uses RPC polling instead of push webhooks
